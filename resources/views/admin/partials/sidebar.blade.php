@@ -1,0 +1,493 @@
+<aside class="sidebar-wrapper" data-simplebar="true">
+    <div class="sidebar-header">
+      <div class="logo-icon">
+        <img src="https://maharashtratourism.gov.in/wp-content/uploads/2025/01/mah-logo-300x277.png" class="logo-img" alt="">
+      </div>
+      <div class="logo-name flex-grow-1">
+        <h6 class="mb-0">Maharashtra Tourism</h6>
+      </div>
+      <div class="sidebar-close">
+        <span class="material-icons-outlined">close</span>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+        <!--navigation-->
+        <ul class="metismenu" id="sidenav">
+          <li>
+            <a href="{{ route('admin.dashboard') }}" class="has-arrow1">
+              <div class="parent-icon"><i class="material-icons-outlined">home</i>
+              </div>
+              <div class="menu-title">Dashboard</div>
+            </a>
+            {{-- <ul>
+              <li><a href="index.html"><i class="material-icons-outlined">arrow_right</i>Analysis</a>
+              </li>
+              <li><a href="index2.html"><i class="material-icons-outlined">arrow_right</i>eCommerce</a>
+              </li>
+            </ul> --}}
+          </li>
+          {{-- <li>
+            <a href="javascript:;" class="has-arrow">
+              <div class="parent-icon"><i class="material-icons-outlined">widgets</i>
+              </div>
+              <div class="menu-title">Widgets</div>
+            </a>
+            <ul>
+              <li><a href="widgets-data.html"><i class="material-icons-outlined">arrow_right</i>Data</a>
+              </li>
+              <li><a href="widgets-static.html"><i class="material-icons-outlined">arrow_right</i>Static</a>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <a class="has-arrow" href="javascript:;">
+              <div class="parent-icon"><i class="material-icons-outlined">apps</i>
+              </div>
+              <div class="menu-title">Apps</div>
+            </a>
+            <ul>
+              <li><a href="app-emailbox.html"><i class="material-icons-outlined">arrow_right</i>Email Box</a>
+              </li>
+              <li><a href="app-emailread.html"><i class="material-icons-outlined">arrow_right</i>Email Read</a>
+              </li>
+              <li><a href="app-chat-box.html"><i class="material-icons-outlined">arrow_right</i>Chat</a>
+              </li>
+              <li><a href="app-fullcalender.html"><i class="material-icons-outlined">arrow_right</i>Calendar</a>
+              </li>
+              <li><a href="app-to-do.html"><i class="material-icons-outlined">arrow_right</i>To do</a>
+              </li>
+              <li><a href="app-invoice.html"><i class="material-icons-outlined">arrow_right</i>Invoice</a>
+              </li>
+            </ul>
+          </li> --}}
+
+
+          <li class="menu-label">Forms</li>
+          <li>
+            <a class="has-arrow" href="javascript:;">
+              <div class="parent-icon"><i class="material-icons-outlined">toc</i>
+              </div>
+              <div class="menu-title">Forms</div>
+            </a>
+            <ul>
+              <li><a href="{{ route("admin.ApplicationForms.index") }}"><i class="material-icons-outlined">arrow_right</i>All Forms</a>
+              </li>
+            </ul>
+          </li>
+
+
+          <li class="menu-label">Master Management</li>
+          {{-- <li>
+            <a href="cards.html">
+              <div class="parent-icon"><i class="material-icons-outlined">inventory_2</i>
+              </div>
+              <div class="menu-title">Cards</div>
+            </a>
+          </li> --}}
+
+          <li>
+            <a href="javascript:;" class="has-arrow">
+
+                <div class="parent-icon"><i class="material-icons-outlined">api</i>
+              {{-- <div class="theme-icons parent-icon"><i class="material-icons-outlined">basketball</i> --}}
+              </div>
+              <div class="menu-title">Master data</div>
+            </a>
+            <ul>
+              <li><a href="{{ route('admin.master.countries.index') }}"><i class="material-icons-outlined">arrow_right</i>Country</a>
+              </li>
+              <li><a href="{{ route('admin.master.states.index') }}"><i class="material-icons-outlined">arrow_right</i>State</a>
+              </li>
+              <li><a href="{{ route('admin.master.districts.index') }}"><i class="material-icons-outlined">arrow_right</i>Districts</a>
+              </li>
+              <li><a href="{{ route("admin.application-forms.index") }}"><i class="material-icons-outlined">arrow_right</i>Forms</a>
+              </li>
+              <li><a href="{{ route("admin.enterprises.index") }}"><i class="material-icons-outlined">arrow_right</i>Enterprise</a>
+              </li>
+              <li><a href="{{ route("admin.categories.index") }}"><i class="material-icons-outlined">arrow_right</i>Category</a>
+              </li>
+              <li><a href="{{ route("admin.tourism-facilities.index") }}"><i class="material-icons-outlined">arrow_right</i>Tourism-Facility</a>
+              </li>
+              <li><a href="{{ route("admin.TermsAndCondition.index") }}"><i class="material-icons-outlined">arrow_right</i>Terms-Condition</a>
+              </li>
+              <li><a href="{{ route("admin.undertaking.create") }}"><i class="material-icons-outlined">arrow_right</i>Undertaking</a>
+              </li>
+              <li><a href="{{ route("admin.master.divisions.index") }}"><i class="material-icons-outlined">arrow_right</i>Divisions</a>
+              </li>
+
+              <li><a href="{{ route("admin.master.types.index") }}"><i class="material-icons-outlined">arrow_right</i>Caravan Type</a>
+              </li>
+              <li><a href="{{ route("admin.master.optionalfeatures.index") }}"><i class="material-icons-outlined">arrow_right</i>Caravan Optional Feature</a>
+              </li>
+              <li><a href="{{ route("admin.master.amenities.index") }}"><i class="material-icons-outlined">arrow_right</i>Caravan Amenity</a>
+              </li>
+
+              <li>
+                <a class="has-arrow" href="javascript:;">
+                    <i class="material-icons-outlined">arrow_right</i>Roles
+                </a>
+                <ul>
+
+                        <li>
+                            <a href="{{ route('admin.roles.index') }}">
+                                <i class="material-icons-outlined">arrow_right</i>All Roles
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="{{ route('admin.roles.create') }}">
+                                <i class="material-icons-outlined">arrow_right</i>Add Roles
+                            </a>
+                        </li>
+
+                </ul>
+            </li>
+
+            </ul>
+          </li>
+          {{-- <li>
+            <a class="has-arrow" href="javascript:;">
+              <div class="parent-icon"><i class="material-icons-outlined">card_giftcard</i>
+              </div>
+              <div class="menu-title">Components</div>
+            </a>
+            <ul>
+              <li><a href="component-alerts.html"><i class="material-icons-outlined">arrow_right</i>Alerts</a>
+              </li>
+              <li><a href="component-accordions.html"><i class="material-icons-outlined">arrow_right</i>Accordions</a>
+              </li>
+              <li><a href="component-badges.html"><i class="material-icons-outlined">arrow_right</i>Badges</a>
+              </li>
+              <li><a href="component-buttons.html"><i class="material-icons-outlined">arrow_right</i>Buttons</a>
+              </li>
+              <li><a href="component-carousels.html"><i class="material-icons-outlined">arrow_right</i>Carousels</a>
+              </li>
+              <li><a href="component-media-object.html"><i class="material-icons-outlined">arrow_right</i>Media
+                  Objects</a>
+              </li>
+              <li><a href="component-modals.html"><i class="material-icons-outlined">arrow_right</i>Modals</a>
+              </li>
+              <li><a href="component-navs-tabs.html"><i class="material-icons-outlined">arrow_right</i>Navs & Tabs</a>
+              </li>
+              <li><a href="component-navbar.html"><i class="material-icons-outlined">arrow_right</i>Navbar</a>
+              </li>
+              <li><a href="component-paginations.html"><i class="material-icons-outlined">arrow_right</i>Pagination</a>
+              </li>
+              <li><a href="component-popovers-tooltips.html"><i class="material-icons-outlined">arrow_right</i>Popovers
+                  & Tooltips</a>
+              </li>
+              <li><a href="component-progress-bars.html"><i class="material-icons-outlined">arrow_right</i>Progress</a>
+              </li>
+              <li><a href="component-spinners.html"><i class="material-icons-outlined">arrow_right</i>Spinners</a>
+              </li>
+              <li><a href="component-notifications.html"><i
+                    class="material-icons-outlined">arrow_right</i>Notifications</a>
+              </li>
+              <li><a href="component-avtars-chips.html"><i class="material-icons-outlined">arrow_right</i>Avatrs &
+                  Chips</a>
+              </li>
+              <li><a href="component-typography.html"><i class="material-icons-outlined">arrow_right</i>Typography</a>
+               </li>
+               <li><a href="component-text-utilities.html"><i class="material-icons-outlined">arrow_right</i>Utilities</a>
+               </li>
+            </ul>
+          </li> --}}
+          {{-- <li>
+            <a class="has-arrow" href="javascript:;">
+              <div class="parent-icon"><i class="material-icons-outlined">view_agenda</i>
+              </div>
+              <div class="menu-title">Icons</div>
+            </a>
+            <ul>
+              <li><a href="icons-line-icons.html"><i class="material-icons-outlined">arrow_right</i>Line Icons</a>
+              </li>
+              <li><a href="icons-boxicons.html"><i class="material-icons-outlined">arrow_right</i>Boxicons</a>
+              </li>
+              <li><a href="icons-feather-icons.html"><i class="material-icons-outlined">arrow_right</i>Feather
+                  Icons</a>
+              </li>
+            </ul>
+          </li> --}}
+
+
+@canany(['view permission', 'create permission', 'view roles', 'create roles', 'view user', 'create user'])
+    <li class="menu-label">Roles & Permissions</li>
+    <li>
+        <a class="has-arrow" href="javascript:;">
+            <div class="parent-icon">
+                <i class="material-icons-outlined">lock</i>
+            </div>
+            <div class="menu-title">Roles & Permissions</div>
+        </a>
+
+        <ul>
+            {{-- PERMISSIONS --}}
+            @canany(['view permission', 'create permission'])
+                <li>
+                    <a class="has-arrow" href="javascript:;">
+                        <i class="material-icons-outlined">arrow_right</i>Permissions
+                    </a>
+                    <ul>
+                        @can('view permission')
+                            <li>
+                                <a href="{{ route('admin.permissions.index') }}">
+                                    <i class="material-icons-outlined">arrow_right</i>All Permission
+                                </a>
+                            </li>
+                        @endcan
+
+                        @can('create permission')
+                            <li>
+                                <a href="{{ route('admin.permissions.create') }}">
+                                    <i class="material-icons-outlined">arrow_right</i>Add Permission
+                                </a>
+                            </li>
+                        @endcan
+                    </ul>
+                </li>
+            @endcanany
+
+            {{-- ROLES --}}
+            @canany(['view roles', 'create roles'])
+                <li>
+                    <a class="has-arrow" href="javascript:;">
+                        <i class="material-icons-outlined">arrow_right</i>Roles
+                    </a>
+                    <ul>
+                        @can('view roles')
+                            <li>
+                                <a href="{{ route('admin.roles.index') }}">
+                                    <i class="material-icons-outlined">arrow_right</i>All Roles
+                                </a>
+                            </li>
+                        @endcan
+
+                        @can('create roles')
+                            <li>
+                                <a href="{{ route('admin.roles.create') }}">
+                                    <i class="material-icons-outlined">arrow_right</i>Add Roles
+                                </a>
+                            </li>
+                        @endcan
+                    </ul>
+                </li>
+            @endcanany
+
+            {{-- ASSIGN PERMISSION TO ROLES --}}
+            @canany(['edit roles', 'view roles'])
+                <li>
+                    <a class="has-arrow" href="javascript:;">
+                        <i class="material-icons-outlined">arrow_right</i>Assign Permission
+                    </a>
+                    <ul>
+                        @can('view roles')
+                            <li>
+                                <a href="{{ route('admin.all.roles.permission') }}">
+                                    <i class="material-icons-outlined">arrow_right</i>All RolesPermission
+                                </a>
+                            </li>
+                        @endcan
+
+                        @can('edit roles')
+                            <li>
+                                <a href="{{ route('admin.add.roles.permission') }}">
+                                    <i class="material-icons-outlined">arrow_right</i>Add RolesPermission
+                                </a>
+                            </li>
+                        @endcan
+                    </ul>
+                </li>
+            @endcanany
+
+            {{-- MANAGE ADMIN USERS --}}
+            @canany(['view user', 'create user'])
+                <li>
+                    <a class="has-arrow" href="javascript:;">
+                        <i class="material-icons-outlined">arrow_right</i>Manage Admin
+                    </a>
+                    <ul>
+                        @can('view user')
+                            <li>
+                                <a href="{{ route('admin.users.index') }}">
+                                    <i class="material-icons-outlined">arrow_right</i>All Users
+                                </a>
+                            </li>
+                        @endcan
+
+                        @can('create user')
+                            <li>
+                                <a href="{{ route('admin.users.create') }}">
+                                    <i class="material-icons-outlined">arrow_right</i>Add Users
+                                </a>
+                            </li>
+                        @endcan
+                    </ul>
+                </li>
+            @endcanany
+
+        </ul>
+    </li>
+@endcanany
+
+
+          {{-- <li class="menu-label">Roles & Permissions</li>
+          <li>
+            <a class="has-arrow" href="javascript:;">
+              <div class="parent-icon"><i class="material-icons-outlined">lock</i>
+              </div>
+              <div class="menu-title">Roles & Permissions</div>
+            </a>
+
+            <ul>
+              <li><a class="has-arrow" href="javascript:;"><i class="material-icons-outlined">arrow_right</i>Permissions</a>
+                <ul>
+                  <li><a href="{{ route("admin.permissions.index") }}" ><i class="material-icons-outlined">arrow_right</i>All Permission</a></li>
+                  <li><a href="{{ route("admin.permissions.create") }}" ><i class="material-icons-outlined">arrow_right</i>Add Permission</a></li>
+
+                </ul>
+              </li>
+              <li><a class="has-arrow" href="javascript:;"><i class="material-icons-outlined">arrow_right</i>Roles</a>
+                <ul>
+                    @can('view roles')
+                  <li><a href="{{ route("admin.roles.index") }}"><i class="material-icons-outlined">arrow_right</i>All Roles</a></li>
+                  @endcan
+                  @can('view create')
+                  <li><a href="{{ route("admin.roles.create") }}"><i class="material-icons-outlined">arrow_right</i>Add Roles</a></li>
+                  @endcan
+                </ul>
+              </li>
+              <li><a class="has-arrow" href="javascript:;"><i class="material-icons-outlined">arrow_right</i>Assign Permission</a>
+                <ul>
+                  <li><a href="{{ route("admin.all.roles.permission") }}"><i class="material-icons-outlined">arrow_right</i>All RolesPermission</a></li>
+                  <li><a href="{{ route("admin.add.roles.permission") }}"><i class="material-icons-outlined">arrow_right</i>Add RolesPermission</a></li>
+
+
+                </ul>
+              </li>
+              <li><a class="has-arrow" href="javascript:;"><i class="material-icons-outlined">arrow_right</i>Manage Admin</a>
+                  <ul>
+                    <li><a href="{{ route("admin.users.index") }}" ><i class="material-icons-outlined">arrow_right</i>All Users</a></li>
+                    <li><a href="{{ route("admin.users.create") }}"><i class="material-icons-outlined">arrow_right</i>Add Users</a></li>
+                  </ul>
+              </li>
+        </ul>
+          </li> --}}
+
+
+
+          {{-- <li>
+            <a href="user-profile.html">
+              <div class="parent-icon"><i class="material-icons-outlined">person</i>
+              </div>
+              <div class="menu-title">User Profile</div>
+            </a>
+          </li> --}}
+          {{-- <li>
+            <a href="timeline.html">
+              <div class="parent-icon"><i class="material-icons-outlined">join_right</i>
+              </div>
+              <div class="menu-title">Timeline</div>
+            </a>
+          </li> --}}
+          {{-- <li>
+            <a class="has-arrow" href="javascript:;">
+              <div class="parent-icon"><i class="material-icons-outlined">report_problem</i>
+              </div>
+              <div class="menu-title">Pages</div>
+            </a>
+            <ul>
+              <li><a href="pages-error-404.html" target="_blank"><i class="material-icons-outlined">arrow_right</i>404
+                  Error</a>
+              </li>
+              <li><a href="pages-error-505.html" target="_blank"><i class="material-icons-outlined">arrow_right</i>505
+                  Error</a>
+              </li>
+              <li><a href="pages-coming-soon.html" target="_blank"><i
+                    class="material-icons-outlined">arrow_right</i>Coming Soon</a>
+              </li>
+              <li><a href="pages-starter-page.html" target="_blank"><i
+                    class="material-icons-outlined">arrow_right</i>Blank Page</a>
+              </li>
+            </ul>
+          </li> --}}
+          {{-- <li>
+            <a href="faq.html">
+              <div class="parent-icon"><i class="material-icons-outlined">help_outline</i>
+              </div>
+              <div class="menu-title">FAQ</div>
+            </a>
+          </li>
+          <li>
+            <a href="pricing-table.html">
+              <div class="parent-icon"><i class="material-icons-outlined">sports_football</i>
+              </div>
+              <div class="menu-title">Pricing</div>
+            </a>
+          </li>
+          <li class="menu-label">Charts & Maps</li>
+          <li>
+            <a class="has-arrow" href="javascript:;">
+              <div class="parent-icon"><i class="material-icons-outlined">fitbit</i>
+              </div>
+              <div class="menu-title">Charts</div>
+            </a>
+            <ul>
+              <li><a href="charts-apex-chart.html"><i class="material-icons-outlined">arrow_right</i>Apex</a>
+              </li>
+              <li><a href="charts-chartjs.html"><i class="material-icons-outlined">arrow_right</i>Chartjs</a>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <a class="has-arrow" href="javascript:;">
+              <div class="parent-icon"><i class="material-icons-outlined">sports_football</i>
+              </div>
+              <div class="menu-title">Maps</div>
+            </a>
+            <ul>
+              <li><a href="map-google-maps.html"><i class="material-icons-outlined">arrow_right</i>Google Maps</a>
+              </li>
+              <li><a href="map-vector-maps.html"><i class="material-icons-outlined">arrow_right</i>Vector Maps</a>
+              </li>
+            </ul>
+          </li>
+          <li class="menu-label">Others</li>
+          <li>
+            <a class="has-arrow" href="javascript:;">
+              <div class="parent-icon"><i class="material-icons-outlined">face_5</i>
+              </div>
+              <div class="menu-title">Menu Levels</div>
+            </a>
+            <ul>
+              <li><a class="has-arrow" href="javascript:;"><i class="material-icons-outlined">arrow_right</i>Level
+                  One</a>
+                <ul>
+                  <li><a class="has-arrow" href="javascript:;"><i class="material-icons-outlined">arrow_right</i>Level
+                      Two</a>
+                    <ul>
+                      <li><a href="javascript:;"><i class="material-icons-outlined">arrow_right</i>Level Three</a>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <a href="javascrpt:;">
+              <div class="parent-icon"><i class="material-icons-outlined">description</i>
+              </div>
+              <div class="menu-title">Documentation</div>
+            </a>
+          </li>
+          <li>
+            <a href="javascrpt:;">
+              <div class="parent-icon"><i class="material-icons-outlined">support</i>
+              </div>
+              <div class="menu-title">Support</div>
+            </a>
+          </li> --}}
+         </ul>
+        <!--end navigation-->
+    </div>
+  </aside>
