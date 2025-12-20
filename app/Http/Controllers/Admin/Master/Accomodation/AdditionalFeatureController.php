@@ -6,14 +6,28 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin\master\Accomodation\AdditionalFeature;
 use Illuminate\Http\Request;
 
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+
 class AdditionalFeatureController extends Controller
 {
-   /**
-     * Display a listing of the resource.
-     */
+    public static function middleware(): array
+    {
+        return static::middlewares();
+    }
+    public static function middlewares(): array
+    {
+        return [
+            new Middleware(middleware: 'auth'),
+            new Middleware(middleware: 'permission:view AdditionalFeature', only: ['index', 'data']),
+            new Middleware(middleware: 'permission:create AdditionalFeature', only: ['store', 'create']),
+            new Middleware(middleware: 'permission:edit AdditionalFeature', only: ['update']),
+            new Middleware(middleware: 'permission:delete AdditionalFeature', only: ['destroy']),
+        ];
+    }
+
     public function index()
     {
-        //
         return view('admin.master.Accomodation.additionalFeature.index');
     }
 
@@ -23,7 +37,7 @@ class AdditionalFeatureController extends Controller
 
         return \Yajra\DataTables\Facades\DataTables::of($query)
             ->addIndexColumn()
-           
+
             ->editColumn('is_active', function ($row) {
                 return $row->is_active
                     ? '<span class="badge bg-success">Active</span>'
@@ -31,7 +45,7 @@ class AdditionalFeatureController extends Controller
             })
             ->addColumn('actions', function ($row) {
                 $edit = route('admin.master.additionalFeature.edit', $row);
-              
+
                 $delete = route('admin.master.additionalFeature.destroy',$row);
                 return '
                     <a href="' . $edit . '" class="btn btn-sm btn-primary me-1">
@@ -43,30 +57,21 @@ class AdditionalFeatureController extends Controller
                             <i class="bi bi-trash"></i>
                         </button>
                     </form>' . '
-                   
+
 
                 ';
             })
             ->rawColumns(['is_active', 'actions'])
             ->make(true);
     }
- 
 
-
-  
     public function create()
     {
-         //dd('ada'); 
-         //resources\views\admin\master\Accomodation\additionalFeature\create.blade.php
         return view('admin.master.Accomodation.additionalFeature.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        // Validate the request data
     $validatedData = $request->validate([
         'name'      => 'required|string|max:255|unique:additional_features,name',
         'is_active' => 'required|boolean',
@@ -84,15 +89,12 @@ class AdditionalFeatureController extends Controller
     }
     }
 
-   
+
     public function show(string $id)
     {
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(string $id)
     {
         $additionalFeature = AdditionalFeature::findOrFail($id);
@@ -128,7 +130,7 @@ class AdditionalFeatureController extends Controller
     }
     }
 
-   
+
     public function destroy(string $id)
     {
          $additionalFeature = AdditionalFeature::findOrFail(id: $id);

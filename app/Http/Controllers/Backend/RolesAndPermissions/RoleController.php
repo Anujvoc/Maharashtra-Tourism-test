@@ -217,10 +217,7 @@ class RoleController extends Controller  implements HasMiddleware
     }
 
 
-    public function RolePermissionUpdate1(Request $request)
-    {
-        dd($request->all());
-    }
+   
 
     public function RolePermissionUpdate(Request $request)
     {

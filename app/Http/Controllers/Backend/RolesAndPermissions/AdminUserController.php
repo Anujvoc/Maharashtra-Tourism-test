@@ -16,6 +16,10 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\QueryException;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use App\Models\District;
+use App\Models\Country;
+use App\Models\Admin\Master\Divisions;
+use App\Models\UserRegion;
 class AdminUserController extends Controller  implements HasMiddleware
 {
     public static function middleware(): array
@@ -95,13 +99,130 @@ class AdminUserController extends Controller  implements HasMiddleware
             ->make(true);
     }
 
+    public function get_Region_District($id)
+    {
+
+        $division = Divisions::where('id', $id)->first();
+        if (!$division) {
+            return response()->json(['error' => 'Division not found'], 404);
+        }
+        $districtIds = json_decode($division->districts, true);
+
+        if (!is_array($districtIds)) {
+            return response()->json(['error' => 'Invalid district data'], 400);
+        }
+
+        $districts = District::whereIn('id', $districtIds)
+            ->select('id', 'name')
+            ->get();
+
+        return response()->json($districts);
+    }
+
     public function create()
     {
         $data['roles']=Role::all();
+        $regions      = DB::table('divisions')->select('id', 'name')->get();
+        $districts    = DB::table('districts')->where('state_id', 14)->select('id', 'name')->get();
+        $data['regions']   = $regions;
+        $data['districts'] = $districts;
         return view('admin.RolesAndPermission.AdminUsers.create',$data);
     }
-
     public function store(Request $request)
+    {
+        try {
+
+
+            $rules = [
+                'name'       => 'required|string|max:255',
+                'email'      => 'required|email:rfc,dns|unique:users,email',
+                'phone'      => 'required|digits:10',
+                'password'   => 'required|string|min:8',
+                'roles'      => 'required|exists:roles,id',
+                'is_visible' => 'required|in:active,inactive',
+            ];
+
+    
+            if ($request->roles == 11) {
+                $rules['region_id']   = 'required|exists:divisions,id';
+                $rules['district_id'] = 'required|exists:districts,id';
+            }
+
+            $validated = $request->validate($rules);
+
+            /* -----------------------------
+             | 3️⃣ CREATE USER
+             ----------------------------- */
+            $user = new User();
+            $user->name     = $validated['name'];
+            $user->email    = $validated['email'];
+            $user->phone    = $validated['phone'];
+            $user->password = Hash::make($validated['password']);
+            $user->role     = 'admin';
+            $user->status   = $validated['is_visible'];
+            $user->save();
+
+            /* -----------------------------
+             | 4️⃣ ASSIGN ROLE (SPATIE)
+             ----------------------------- */
+            $role = Role::where('id', $validated['roles'])
+                ->where('guard_name', 'web')
+                ->first();
+
+            if (!$role) {
+                return back()
+                    ->withInput()
+                    ->withErrors(['roles' => 'Selected role is not valid.']);
+            }
+
+            $user->assignRole($role);
+
+            /* -----------------------------
+             | 5️⃣ SAVE REGION (ONLY DY DIRECTOR)
+             ----------------------------- */
+            if ($validated['roles'] == 11) {
+
+                UserRegion::create([
+                    'user_id'     => $user->id,
+                    'region_id'   => $validated['region_id'],
+                    'district_id' => $validated['district_id'],
+                ]);
+            }
+
+            /* -----------------------------
+             | 6️⃣ SUCCESS
+             ----------------------------- */
+            return redirect()
+                ->route('admin.users.index')
+                ->with('success', 'Admin user created successfully.');
+
+        } catch (QueryException $e) {
+
+            Log::error('DB error while creating admin user', [
+                'error' => $e->getMessage()
+            ]);
+
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'error' => 'Database error occurred. Please try again.'
+                ]);
+
+        } catch (Exception $e) {
+
+            Log::error('Unexpected error while creating admin user', [
+                'error' => $e->getMessage()
+            ]);
+
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'error' => 'Something went wrong. Please try again.'
+                ]);
+        }
+    }
+
+    public function storekj(Request $request)
     {
         // dd($request->all());
         try {

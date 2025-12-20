@@ -4,10 +4,11 @@ namespace App\Models\frontend\ApplicationForm;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Traits\HasWorkflow;
 use App\Models\User;
 class ProvisionalRegistration extends Model
 {
-    use HasFactory;
+    use HasFactory, HasWorkflow;
     protected $table = 'provisional_registrations';
     protected $fillable = [
         'user_id',

@@ -8,9 +8,7 @@ use Illuminate\Http\Request;
 
 class GeneralRequirementController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+
     public function index()
     {
         //
@@ -23,7 +21,7 @@ class GeneralRequirementController extends Controller
 
         return \Yajra\DataTables\Facades\DataTables::of($query)
             ->addIndexColumn()
-           
+
             ->editColumn('is_active', function ($row) {
                 return $row->is_active
                     ? '<span class="badge bg-success">Active</span>'
@@ -31,7 +29,7 @@ class GeneralRequirementController extends Controller
             })
             ->addColumn('actions', function ($row) {
                 $edit = route('admin.master.generalRequirement.edit', $row);
-              
+
                 $delete = route('admin.master.generalRequirement.destroy',$row);
                 return '
                     <a href="' . $edit . '" class="btn btn-sm btn-primary me-1">
@@ -43,14 +41,14 @@ class GeneralRequirementController extends Controller
                             <i class="bi bi-trash"></i>
                         </button>
                     </form>' . '
-                   
+
 
                 ';
             })
             ->rawColumns(['is_active', 'actions'])
             ->make(true);
     }
- 
+
 
 
     /**
@@ -58,8 +56,6 @@ class GeneralRequirementController extends Controller
      */
     public function create()
     {
-         //dd('ada'); 
-         //resources\views\admin\master\Accomodation\generalRequirement\create.blade.php
         return view('admin.master.Accomodation.generalRequirement.create');
     }
 

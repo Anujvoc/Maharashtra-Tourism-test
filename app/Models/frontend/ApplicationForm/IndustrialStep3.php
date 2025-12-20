@@ -8,7 +8,7 @@ use App\Models\Admin\ApplicationForm;
 class IndustrialStep3 extends Model
 {
     protected $fillable = [
-        'user_id','application_form_id','slug_id',
+        'user_id','application_form_id','slug_id','additional_features','safety_security',
         'bath_attached','bath_hot_cold','water_saving_taps',
         'public_lobby','reception','public_restrooms',
         'disabled_room','fssai_kitchen','uniforms',

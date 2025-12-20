@@ -3,12 +3,13 @@
 namespace App\Models\frontend\ApplicationForm;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\HasWorkflow;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Admin\ApplicationForm;
 use App\Models\User;
 class EligibilityRegistration extends Model
 {
-    use HasFactory;
+    use HasFactory, HasWorkflow;
 
     protected $fillable = [
         'applicant_name',
@@ -38,16 +39,16 @@ class EligibilityRegistration extends Model
     ];
 
     protected $casts = [
-        'entrepreneurs'     => 'array',
-        'cost_component'    => 'array',
-        'asset_age'         => 'array',
-        'ownership'         => 'array',
-        'enclosures'        => 'array',
-        'other_docs'        => 'array',
-        'is_apply'          => 'boolean',
-        'submitted_at'      => 'datetime',
+        'entrepreneurs' => 'array',
+        'cost_component' => 'array',
+        'asset_age' => 'array',
+        'ownership' => 'array',
+        'enclosures' => 'array',
+        'other_docs' => 'array',
+        'is_apply' => 'boolean',
+        'submitted_at' => 'datetime',
         'commencement_date' => 'date',
-        'declaration_date'  => 'date',
+        'declaration_date' => 'date',
     ];
 
     public function user()

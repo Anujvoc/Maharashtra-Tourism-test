@@ -9,7 +9,7 @@ use App\Models\Admin\ApplicationForm;
 class IndustrialStep2 extends Model
 {
     protected $fillable = [
-        'user_id','application_form_id','slug_id',
+        'user_id','application_form_id','slug_id','general_requirements',
         'min_rooms','room_size_ok','bathroom_size_ok',
         'bathroom_fixtures','full_time_operation','elevators',
         'electricity_availability','emergency_lights','cctv',

@@ -24,7 +24,6 @@
 
 @section('content')
 
-@php($p = $application->progress) {{-- ['done'=>n, 'total'=>4] --}}
 
 <section class="section">
   <div class="section-header">
@@ -161,15 +160,19 @@
                           class="form-control district_id {{ $errors->has('district') ? 'is-invalid' : '' }}">
                     <option value="" selected disabled>Select District</option>
                     {{-- agar edit hai to pre-fill --}}
-                    @if(old('district', $step1->district ?? false))
+                    {{-- @if(old('district', $step1->district ?? false))
                         <option value="{{ old('district', $step1->district ?? '') }}" selected>
                             {{ old('district_name', $step1->district_name ?? 'Selected District') }}
                         </option>
-                    @endif
+                    @endif --}}
                   </select>
                   @error('district')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
               </div>
+
+              <input type="hidden" id="old_district" class="old_district"
+              value="{{ old('district_id', $step1->district ?? '') }}">
+
 
               <div class="col-md-4">
                 <div class="form-group mb-3">

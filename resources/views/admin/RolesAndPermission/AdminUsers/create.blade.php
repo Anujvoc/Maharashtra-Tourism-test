@@ -125,7 +125,7 @@
                     </div>
 
                     {{-- Role --}}
-                    <div class="col-md-6">
+                    {{-- <div class="col-md-6">
                         <label for="roleSelect" class="form-label">Select Role</label>
                         <div class="position-relative input-icon">
                             <select name="roles"
@@ -145,7 +145,39 @@
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                         </div>
+                    </div> --}}
+
+                    @php
+                $oldRegion   = old('region_id');
+                $oldDistrict = old('district_id');
+                $oldRole     = old('roles');
+            @endphp
+
+
+                    <div class="col-md-6">
+                        <label for="roleSelect" class="form-label required">Select Role</label>
+
+                        <select name="roles"
+                                id="roleSelect"
+                                class="form-select @error('roles') is-invalid @enderror"
+                                required>
+                            <option disabled {{ $oldRole ? '' : 'selected' }}>Choose</option>
+
+                            @foreach($roles as $role)
+                                <option value="{{ $role->id }}"
+                                    {{ $oldRole == $role->id ? 'selected' : '' }}>
+                                    {{ $role->name }}
+                                </option>
+                            @endforeach
+                        </select>
+
+                        @error('roles')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
                     </div>
+
+
+
 
                     {{-- Status --}}
                     <div class="col-md-6">
@@ -167,6 +199,55 @@
                             @enderror
                         </div>
                     </div>
+
+                    <div class="row mt-4" id="regionRow" style="display:none;">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="form-label required">
+                                    <i class="bi bi-map"></i> Select Region
+                                </label>
+
+                                <select id="region_id"
+                                        name="region_id" required
+                                        class="form-control @error('region_id') is-invalid @enderror"
+                                        onchange="get_Region_District(this.value)">
+                                    <option value="">Select Region</option>
+
+                                    @foreach($regions as $r)
+                                        <option value="{{ $r->id }}"
+                                            {{ $oldRegion == $r->id ? 'selected' : '' }}>
+                                            {{ $r->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+
+                                @error('region_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="form-label required">
+                                    <i class="bi bi-geo"></i> Select District
+                                </label>
+
+                                <select id="district_id"
+                                        name="district_id" required
+                                        class="form-control @error('district_id') is-invalid @enderror">
+                                    <option value="">Select District</option>
+                                </select>
+
+                                @error('district_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
+
+
 
                     {{-- Buttons --}}
                     <div class="col-md-12">
@@ -228,4 +309,85 @@
         return false;
     }
 </script>
+<script>
+    $(document).ready(function () {
+
+        const DY_DIRECTOR_ROLE_ID = '11';
+
+        const $roleSelect   = $('#roleSelect');
+        const $regionRow    = $('#regionRow');
+        const $regionSelect = $('#region_id');
+        const $districtSelect = $('#district_id');
+
+        const OLD_ROLE     = "{{ $oldRole }}";
+        const OLD_REGION   = "{{ $oldRegion }}";
+        const OLD_DISTRICT = "{{ $oldDistrict }}";
+
+        // 🔹 Show / Hide Region Row based on Role
+        function toggleRegionRow() {
+
+            if ($roleSelect.val() === DY_DIRECTOR_ROLE_ID) {
+
+                $regionRow.slideDown();
+
+                // old region hai aur district empty hai → load districts
+                if (OLD_REGION && $districtSelect.children('option').length <= 1) {
+                    loadDistricts(OLD_REGION, OLD_DISTRICT);
+                }
+
+            } else {
+                $regionRow.slideUp();
+            }
+        }
+
+        // 🔹 Load districts via AJAX
+        function loadDistricts(regionId, selectedDistrict = null) {
+
+            if (!regionId) {
+                $districtSelect.html('<option value="">Select District</option>');
+                return;
+            }
+
+            const url = "{{ route('get_Region_District', ['id' => ':id']) }}"
+                .replace(':id', regionId);
+
+            $districtSelect.html('<option value="">Loading...</option>');
+
+            $.ajax({
+                url: url,
+                type: 'GET',
+                dataType: 'json',
+                success: function (resp) {
+
+                    let options = '<option value="">Select District</option>';
+
+                    if (Array.isArray(resp)) {
+                        $.each(resp, function (index, item) {
+                            let selected = (selectedDistrict == item.id) ? 'selected' : '';
+                            options += `<option value="${item.id}" ${selected}>${item.name}</option>`;
+                        });
+                    }
+
+                    $districtSelect.html(options);
+                },
+                error: function () {
+                    $districtSelect.html('<option value="">Error loading districts</option>');
+                }
+            });
+        }
+
+        // 🔹 EVENTS
+        $roleSelect.on('change', toggleRegionRow);
+
+        $regionSelect.on('change', function () {
+            loadDistricts($(this).val());
+        });
+
+        // 🔹 Initial load (page reload / validation fail)
+        toggleRegionRow();
+    });
+    </script>
+
 @endpush
+
+

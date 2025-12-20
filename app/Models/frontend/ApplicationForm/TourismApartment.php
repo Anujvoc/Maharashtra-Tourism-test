@@ -3,9 +3,11 @@
 namespace App\Models\frontend\Applicationform;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\HasWorkflow;
 
 class TourismApartment extends Model
 {
+    use HasWorkflow;
     protected $table = "tourism_apartments";
 
     protected $fillable = [

@@ -1,6 +1,5 @@
-{{-- resources/views/frontend/industrial/_step-indicator.blade.php --}}
-<div class="step-indicator d-flex mb-4">
-    <?php
+@php
+    // Yahan se steps define ho rahe hain – industrial form ke liye
     $steps = [
         1 => 'Basic Information',
         2 => 'Facilities & Services',
@@ -8,6 +7,22 @@
         4 => 'Review & Submit',
     ];
 
+    // Total steps
+    $totalSteps = count($steps);
+
+    // Ab progress DB me store karne ki zaroorat nahi,
+    // sirf current_step se hi 'done' treat kar lo
+    $done = $application->current_step - 1 ?? 1;
+
+    $p = [
+        'done'  => $done,
+        'total' => $totalSteps,
+    ];
+@endphp
+
+<div class="step-indicator d-flex mb-4">
+    <?php
+    // dd($steps);
     foreach ($steps as $num => $label):
 
         $isCompleted = $num <= $p['done'];
@@ -43,4 +58,4 @@
           </div>
         </a>
     <?php endforeach; ?>
-  </div>
+</div>

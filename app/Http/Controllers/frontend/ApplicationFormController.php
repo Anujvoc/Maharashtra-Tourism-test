@@ -102,7 +102,7 @@ class ApplicationFormController extends Controller
                 $app->update([
                     'status'       => 'draft',
                     'is_apply'     => false,
-                    'current_step' => 1,
+
                 ]);
             } else {
                 $app = Application::create([
@@ -113,6 +113,7 @@ class ApplicationFormController extends Controller
                     'is_apply'            => false,
                     'current_step'        => 1,
                 ]);
+                
             }
 
             return redirect()->route('industrial.wizard.show', [

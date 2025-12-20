@@ -19,11 +19,11 @@ class DashboardController extends Controller
 
     public function index()
     {
-        $user   = Auth::user();
+        $user = Auth::user();
         $userId = $user->id;
-        $totalApplications    = ApplicationForm::count();
+        $totalApplications = ApplicationForm::count();
         $approvedApplications = ApplicationForm::where('is_active', true)->count();
-        $pendingApplications  = ApplicationForm::where('is_active', false)->count();
+        $pendingApplications = ApplicationForm::where('is_active', false)->count();
 
         $recentActivities = [];
 
@@ -36,11 +36,11 @@ class DashboardController extends Controller
 
         $totalUserApplications = 0;
         $statusCounts = [
-            'draft'     => 0,
+            'draft' => 0,
             'submitted' => 0,
-            'approved'  => 0,
-            'rejected'  => 0,
-            'pending'  => 0,
+            'approved' => 0,
+            'rejected' => 0,
+            'pending' => 0,
         ];
 
         foreach ($models as $modelClass) {
@@ -56,13 +56,52 @@ class DashboardController extends Controller
             $totalUserApplications += $counts->sum();
         }
 
+        // Fetch Generated Certificates
+        $certificates = collect();
+
+        // Check all application models for generated certificates
+        $allModels = [
+            'stamp-duty' => \App\Models\frontend\ApplicationForm\StampDutyApplication::class,
+            'provisional' => \App\Models\frontend\ApplicationForm\ProvisionalRegistration::class,
+            'eligibility' => \App\Models\frontend\ApplicationForm\EligibilityRegistration::class,
+            'adventure' => AdventureApplication::class,
+            'agriculture' => AgricultureRegistration::class,
+            'women-centered' => WomenCenteredTourismRegistration::class,
+            'caravan' => \App\Models\frontend\CaravanRegistration\CaravanRegistration::class,
+            'tourism-apartment' => TourismApartment::class,
+            'tourist-villa' => \App\Models\frontend\ApplicationForm\TouristVillaRegistration::class,
+            'industrial' => \App\Models\frontend\ApplicationForm\IndustrialRegistration::class,
+        ];
+
+        foreach ($allModels as $type => $modelClass) {
+            try {
+                $apps = $modelClass::where('user_id', $userId)
+                    ->where('workflow_status', 'Certificate Generated')
+                    ->get();
+
+                foreach ($apps as $app) {
+                    $certificates->push((object) [
+                        'id' => $app->id,
+                        'registration_id' => $app->registration_id ?? $app->regn ?? 'N/A',
+                        'type' => $type,
+                        'type_name' => ucwords(str_replace('-', ' ', $type)),
+                        'generated_at' => $app->submitted_at ?? $app->created_at,
+                    ]);
+                }
+            } catch (\Exception $e) {
+                // Skip models with missing columns
+                continue;
+            }
+        }
+
         return view('frontend.dashboard', compact(
             'totalApplications',
             'approvedApplications',
             'pendingApplications',
             'recentActivities',
             'totalUserApplications',
-            'statusCounts'
+            'statusCounts',
+            'certificates'
         ));
     }
 

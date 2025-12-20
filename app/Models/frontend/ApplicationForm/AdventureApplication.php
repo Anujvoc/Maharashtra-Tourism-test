@@ -4,10 +4,11 @@ namespace App\Models\frontend\ApplicationForm;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Traits\HasWorkflow;
 
 class AdventureApplication extends Model
 {
-    use HasFactory;
+    use HasFactory, HasWorkflow;
     protected $fillable = [
         'email',
         'mobile',
@@ -33,7 +34,7 @@ class AdventureApplication extends Model
         'slug_id',
         'application_form_id',
     ];
-    
+
     protected $casts = [
         'is_apply' => 'boolean',
         'submitted_at' => 'datetime',

@@ -4,10 +4,11 @@ namespace App\Models\frontend\ApplicationForm;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Traits\HasWorkflow;
 
 class WomenCenteredTourismRegistration extends Model
 {
-    use HasFactory;
+    use HasFactory, HasWorkflow;
 
     protected $fillable = [
         'status',
@@ -56,13 +57,13 @@ class WomenCenteredTourismRegistration extends Model
     ];
 
     protected $casts = [
-        'dob'                     => 'date',
-        'business_operation_since'=> 'date',
+        'dob' => 'date',
+        'business_operation_since' => 'date',
         'business_expected_start' => 'date',
-        'has_udyog_aadhar'       => 'boolean',
-        'business_in_operation'   => 'boolean',
+        'has_udyog_aadhar' => 'boolean',
+        'business_in_operation' => 'boolean',
         'submitted_at' => 'datetime',
-        'is_apply'     => 'boolean',
+        'is_apply' => 'boolean',
     ];
 
     public function user()

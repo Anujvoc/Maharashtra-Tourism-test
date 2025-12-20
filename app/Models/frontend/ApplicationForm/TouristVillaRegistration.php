@@ -4,9 +4,11 @@ namespace App\Models\frontend\Applicationform;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Traits\HasWorkflow;
 
 class TouristVillaRegistration extends Model
 {
+    use HasFactory, HasWorkflow;
     protected $fillable = [
         'application_id',
         'user_id',
@@ -48,15 +50,15 @@ class TouristVillaRegistration extends Model
     ];
 
     protected $casts = [
-        'property_rented'      => 'boolean',
+        'property_rented' => 'boolean',
         'property_operational' => 'boolean',
-        'attached_toilet'      => 'boolean',
-        'dustbins'             => 'boolean',
-        'road_access'          => 'boolean',
-        'food_provided'        => 'boolean',
-        'payment_options'      => 'boolean',
-        'application_fees'     => 'boolean',
-        'status'               => 'boolean',
-        'facilities'           => 'array',
+        'attached_toilet' => 'boolean',
+        'dustbins' => 'boolean',
+        'road_access' => 'boolean',
+        'food_provided' => 'boolean',
+        'payment_options' => 'boolean',
+        'application_fees' => 'boolean',
+        'status' => 'boolean',
+        'facilities' => 'array',
     ];
 }

@@ -12,9 +12,28 @@ use Exception;
 use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Permission;
 use App\Models\Admin\ApplicationForm;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Auth;
 
-class ApplicationFormController extends Controller
+class ApplicationFormController extends Controller implements HasMiddleware
 {
+
+
+    public static function middleware(): array
+    {
+        return static::middlewares();
+    }
+    public static function middlewares(): array
+    {
+        return [
+            new Middleware(middleware: 'auth'),
+            new Middleware(middleware: 'permission:view forms', only: ['index', 'data']),
+            new Middleware(middleware: 'permission:create forms', only: ['store', 'create']),
+            new Middleware(middleware: 'permission:edit forms', only: ['update']),
+            new Middleware(middleware: 'permission:delete forms', only: ['destroy']),
+        ];
+    }
 
     public function index()
     {
@@ -38,14 +57,26 @@ class ApplicationFormController extends Controller
                     : '<span class="badge bg-secondary">Inactive</span>';
             })
             ->addColumn('actions', function ($row) {
-                $edit = route('admin.application-forms.edit', $row);
-                $delete = route('admin.application-forms.destroy', $row);
-                return '
+                $user = Auth::user();
+                $actions = '';
+                if ($user?->can('edit forms')) {
+                    $edit = route('admin.application-forms.edit', $row);
+                    $actions .= '
                     <a href="' . $edit . '" class="btn btn-sm btn-primary me-1">
                         <i class="bi bi-pencil-square"></i>
                     </a>
-
                 ';
+                }
+                if ($user?->can('delete forms')) {
+                    $delete = route('admin.application-forms.destroy', $row);
+                    $actions .= '
+                    <button class="btn btn-sm btn-danger delete-btn" data-url="' . $delete . '">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                ';
+                }
+
+                return $actions;
             })
             ->rawColumns(['image', 'is_active', 'actions'])
             ->make(true);

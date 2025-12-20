@@ -40,13 +40,13 @@ Route::get('/tourism/registration', function () {
     return view('frontend.registration');
 
 });
-Route::get('/test-qrcode', function(){
+Route::get('/test-qrcode', function () {
     $svg = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')->size(300)->generate('Hello');
 
-return response($svg, 200, [
-    'Content-Type' => 'image/svg+xml',
-    'Content-Disposition' => 'attachment; filename="qr.svg"',
-]);
+    return response($svg, 200, [
+        'Content-Type' => 'image/svg+xml',
+        'Content-Disposition' => 'attachment; filename="qr.svg"',
+    ]);
 
     return response(\SimpleSoftwareIO\QrCode\Facades\QrCode::format('png')->size(300)->generate('Hello World'), 200, [
         'Content-Type' => 'image/png',
@@ -72,15 +72,18 @@ Route::middleware(['auth'])->group(function () {
 
     // routes/web.php
 
-Route::get('/provisional-registration', function () {
-    return view('frontend.create');
-})->name('provisional.registration.create');
+    Route::get('/provisional-registration', function () {
+        return view('frontend.create');
+    })->name('provisional.registration.create');
 
 
     Route::get('/applications', [ApplicationController::class, 'index'])->name('applications.index');
+    Route::get('/applications/{type}/{id}/remarks', [ApplicationController::class, 'getRemarks'])->name('applications.remarks');
     Route::get('/applications/reports', [ApplicationController::class, 'reports'])->name('applications.reports');
     Route::get('/applications/{id}/report', [ApplicationController::class, 'generateReport'])->name('applications.report');
     Route::get('/applications/{id}/report/download', [ApplicationController::class, 'generateReport'])->name('applications.report.download');
+    // Certificate Download for User
+    Route::get('/applications/certificate/{type}/{id}/download', [ApplicationController::class, 'downloadCertificate'])->name('applications.certificate.download');
     Route::post('/applications', [ApplicationController::class, 'store'])->name('applications.store');
 
     Route::prefix('apply/{application:slug_id}')->name('wizard.')->group(function () {
@@ -117,92 +120,104 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::middleware(['auth'])->prefix('frontend')->as('frontend.')->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'index'])
-            ->name('dashboard');
-            Route::post('/logout', [DashboardController::class, 'logout'])->name('logout');
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->name('dashboard');
+    Route::post('/logout', [DashboardController::class, 'logout'])->name('logout');
 
-        Route::resource('application-forms', ApplicationFormController::class);
+    Route::resource('application-forms', ApplicationFormController::class);
 
-        Route::get('/applications/store', [ApplicationFormController::class, 'store'])->name('application.store');
+    Route::get('/applications/store', [ApplicationFormController::class, 'store'])->name('application.store');
 
-        Route::resource('villa-registrations', TouristVillaRegistrationController::class);
-        Route::get('/TourismApartments/create', [TourismApartmentRegistrationController::class, 'create'])->name('TourismApartments.create');
-        Route::post('/TourismApartments/store', [TourismApartmentRegistrationController::class, 'store'])->name('TourismApartments.store');
+    Route::resource('villa-registrations', TouristVillaRegistrationController::class);
+    Route::get('/TourismApartments/create', [TourismApartmentRegistrationController::class, 'create'])->name('TourismApartments.create');
+    Route::post('/TourismApartments/store', [TourismApartmentRegistrationController::class, 'store'])->name('TourismApartments.store');
 
-        //adventure
-        Route::resource('adventure-applications', AdventureApplicationController::class);
-        Route::get('get_Region_District/{id}', [AdventureApplicationController::class, 'get_Region_District'])->name('get_Region_District');
-        Route::get('/applications/adventure/{id}/report', [AdventureApplicationController::class, 'report'])
+    //adventure
+    Route::resource('adventure-applications', AdventureApplicationController::class);
+    Route::get('get_Region_District/{id}', [AdventureApplicationController::class, 'get_Region_District'])->name('get_Region_District');
+    Route::get('/applications/adventure/{id}/report', [AdventureApplicationController::class, 'report'])
         ->name('applications.adventure.report');
 
-        Route::get('/applications/tourism/{id}/report', [TourismApartmentRegistrationController::class, 'report'])
+    Route::get('/applications/tourism/{id}/report', [TourismApartmentRegistrationController::class, 'report'])
         ->name('applications.tourism.report');
 
-//WomenCenteredTourismRegistrationController
-        Route::resource('women-tourism-registrations', WomenCenteredTourismRegistrationController::class);
+    //WomenCenteredTourismRegistrationController
+    Route::resource('women-tourism-registrations', WomenCenteredTourismRegistrationController::class);
 
-        Route::resource('/caravan-registrations', CaravanRegistrationController::class);
+    Route::resource('/caravan-registrations', CaravanRegistrationController::class);
 
-    });
+});
 
-    Route::middleware(['auth'])->group(function () {
-        Route::get('/agriculture-registrations/create', [AgricultureRegistrationController::class, 'create'])
-            ->name('agriculture-registrations.create');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/agriculture-registrations/create', [AgricultureRegistrationController::class, 'create'])
+        ->name('agriculture-registrations.create');
 
-        Route::post('/agriculture-registrations', [AgricultureRegistrationController::class, 'store'])
-            ->name('agriculture-registrations.store');
+    Route::post('/agriculture-registrations', [AgricultureRegistrationController::class, 'store'])
+        ->name('agriculture-registrations.store');
 
-        Route::get('/agriculture-registrations', [AgricultureRegistrationController::class, 'index'])
-            ->name('agriculture-registrations.index');
-        Route::get('/applications/Agriculture/tourism/{id}/report', [AgricultureRegistrationController::class, 'report'])
-            ->name('applications.Agriculture.tourism.report');
-
-
-        Route::resource('/caravan-registrations', CaravanRegistrationController::class);
-            // Route::post('/caravan-registration/store', [CaravanRegistrationController::class, 'store'])->name('caravan.store');
-
-            //distict
-        // Route::get('get_Region_District/{id}', [CaravanRegistrationController::class, 'get_Region_District'])->name('get_Region_District');
-        //     Route::get('/region/{id}/districts', [CaravanRegistrationController::class, 'getDistricts']);
-    });
+    Route::get('/agriculture-registrations', [AgricultureRegistrationController::class, 'index'])
+        ->name('agriculture-registrations.index');
+    Route::get('/applications/Agriculture/tourism/{id}/report', [AgricultureRegistrationController::class, 'report'])
+        ->name('applications.Agriculture.tourism.report');
 
 
+    Route::resource('/caravan-registrations', CaravanRegistrationController::class);
+    // Route::post('/caravan-registration/store', [CaravanRegistrationController::class, 'store'])->name('caravan.store');
 
-    Route::middleware('auth')->prefix('industrial')->name('industrial.')->group(function () {
-
-        // NEW: start wizard for a given application_form
-        Route::post('/wizard/start/{application_form}',
-            [IndustrialWizardController::class, 'start']
-        )->name('wizard.start');
-
-        Route::get('/wizard/{application}/step/{step}',
-            [IndustrialWizardController::class, 'show']
-        )->name('wizard.show');
-
-        Route::post('/wizard/{application}/step/1',
-            [IndustrialWizardController::class, 'storeStep1']
-        )->name('wizard.step1.store');
-
-        Route::post('/wizard/{application}/step/2',
-            [IndustrialWizardController::class, 'storeStep2']
-        )->name('wizard.step2.store');
-
-        Route::post('/wizard/{application}/step/3',
-            [IndustrialWizardController::class, 'storeStep3']
-        )->name('wizard.step3.store');
-
-        // agar storeStep4 hai to yahan
-        Route::post('/wizard/{application}/step/4',
-            [IndustrialWizardController::class, 'storeStep4']
-        )->name('wizard.step4.store');
-
-        Route::post('/wizard/{application}/final-submit',
-            [IndustrialWizardController::class, 'finalSubmit']
-        )->name('wizard.final-submit');
-    });
+    //distict
+    // Route::get('get_Region_District/{id}', [CaravanRegistrationController::class, 'get_Region_District'])->name('get_Region_District');
+    //     Route::get('/region/{id}/districts', [CaravanRegistrationController::class, 'getDistricts']);
+});
 
 
-    // routes/web.php
+
+Route::middleware('auth')->prefix('industrial')->name('industrial.')->group(function () {
+
+    // NEW: start wizard for a given application_form
+    Route::post(
+        '/wizard/start/{application_form}',
+        [IndustrialWizardController::class, 'start']
+    )->name('wizard.start');
+
+    Route::get(
+        '/wizard/{application}/step/{step}',
+        [IndustrialWizardController::class, 'show']
+    )->name('wizard.show');
+
+    Route::post(
+        '/wizard/{application}/step/1',
+        [IndustrialWizardController::class, 'storeStep1']
+    )->name('wizard.step1.store');
+
+    Route::post(
+        '/wizard/{application}/step/2',
+        [IndustrialWizardController::class, 'storeStep2']
+    )->name('wizard.step2.store');
+
+    Route::post(
+        '/wizard/{application}/step/3',
+        [IndustrialWizardController::class, 'storeStep3']
+    )->name('wizard.step3.store');
+
+    // agar storeStep4 hai to yahan
+    Route::post(
+        '/wizard/{application}/step/4',
+        [IndustrialWizardController::class, 'storeStep4']
+    )->name('wizard.step4.store');
+
+    Route::post(
+        '/wizard/{application}/final-submit',
+        [IndustrialWizardController::class, 'finalSubmit']
+    )->name('wizard.final-submit');
+    // new 
+    Route::get(
+        '/hotel/report/{id}',
+        [IndustrialWizardController::class, 'report']
+    )->name('registration.report');
+});
+
+
+// routes/web.php
 Route::middleware(['auth'])->group(function () {
     // Provisional Registration Wizard
     Route::prefix('provisional/{application}')->group(function () {
@@ -236,8 +251,8 @@ Route::middleware(['auth'])->group(function () {
 
         // Wizard entry (step1 by default)
         Route::get('/wizard/{id}/{step?}/{application?}', [StampDutyWizardController::class, 'create'])
-        ->whereNumber('step')
-        ->name('wizard');
+            ->whereNumber('step')
+            ->name('wizard');
 
         // Handle step POST (create + update)
         Route::post('/wizard/{step}', [StampDutyWizardController::class, 'store'])
@@ -258,7 +273,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 require_once base_path('routes/admin.php');
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
 
 Route::get('vendor/dashboard', [AdminController::class, 'dashboard'])->name('vendor.dashboard');
 
