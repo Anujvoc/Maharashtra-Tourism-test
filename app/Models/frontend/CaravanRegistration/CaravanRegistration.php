@@ -4,12 +4,13 @@ namespace App\Models\frontend\CaravanRegistration;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Traits\HasWorkflow;
+use App\Traits\HasDocuments;
 
 use Illuminate\Database\Eloquent\Model;
 
 class CaravanRegistration extends Model
 {
-    use HasFactory, HasWorkflow;
+    use HasFactory, HasWorkflow, HasDocuments;
 
 
     protected $fillable = [

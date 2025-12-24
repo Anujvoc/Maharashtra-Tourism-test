@@ -273,6 +273,9 @@ Route::middleware(['auth'])->group(function () {
 });
 
 require_once base_path('routes/admin.php');
+// User Document Re-upload
+Route::post('/user/documents/{id}/update', [App\Http\Controllers\frontend\UserDocumentController::class, 'update'])->name('user.documents.update')->middleware('auth');
+
 require __DIR__ . '/auth.php';
 
 Route::get('vendor/dashboard', [AdminController::class, 'dashboard'])->name('vendor.dashboard');

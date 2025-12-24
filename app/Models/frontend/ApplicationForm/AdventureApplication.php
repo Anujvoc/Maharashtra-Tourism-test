@@ -5,10 +5,11 @@ namespace App\Models\frontend\ApplicationForm;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Traits\HasWorkflow;
+use App\Traits\HasDocuments;
 
 class AdventureApplication extends Model
 {
-    use HasFactory, HasWorkflow;
+    use HasFactory, HasWorkflow, HasDocuments;
     protected $fillable = [
         'email',
         'mobile',
@@ -39,5 +40,13 @@ class AdventureApplication extends Model
         'is_apply' => 'boolean',
         'submitted_at' => 'datetime',
     ];
+
+    public function getDocumentMapping()
+    {
+        return [
+            'pan_file' => 'PAN Card',
+            'aadhar_file' => 'Aadhaar Card',
+        ];
+    }
 
 }

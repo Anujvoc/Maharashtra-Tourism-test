@@ -7,10 +7,11 @@ use App\Models\Admin\ApplicationForm;
 use App\Models\frontend\ApplicationForm\Application;
 use App\Models\User;
 use App\Traits\HasWorkflow;
+use App\Traits\HasDocuments;
 
 class IndustrialRegistration extends Model
 {
-    use HasWorkflow;
+    use HasWorkflow, HasDocuments;
     protected $fillable = [
         'user_id',
         'application_form_id',
@@ -58,6 +59,26 @@ class IndustrialRegistration extends Model
         'electricity_bill_path',
         'building_cert_path',
     ];
+
+    public function getDocumentMapping()
+    {
+        return [
+            'pan_card_path' => 'PAN Card',
+            'aadhaar_card_path' => 'Aadhaar Card',
+            'gst_cert_path' => 'GST Certificate',
+            'fssai_cert_path' => 'FSSAI Certificate',
+            'business_reg_path' => 'Business Registration',
+            'declaration_path' => 'Declaration',
+            'mpcb_cert_path' => 'MPCB Certificate',
+            'light_bill_path' => 'Light Bill',
+            'fire_noc_path' => 'Fire NOC',
+            'property_tax_path' => 'Property Tax Receipt',
+            'star_cert_path' => 'Star Category Certificate',
+            'water_bill_path' => 'Water Bill',
+            'electricity_bill_path' => 'Electricity Bill',
+            'building_cert_path' => 'Building Completion Certificate',
+        ];
+    }
 
     public function application()
     {

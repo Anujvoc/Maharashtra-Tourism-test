@@ -19,4 +19,9 @@ class ApplicationWorkflowLog extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function siteVisitReport()
+    {
+        return $this->hasOne(SiteVisitReport::class, 'workflow_log_id');
+    }
 }

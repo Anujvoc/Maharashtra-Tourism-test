@@ -5,10 +5,11 @@ namespace App\Models\frontend\ApplicationForm;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Traits\HasWorkflow;
+use App\Traits\HasDocuments;
 use App\Models\User;
 class ProvisionalRegistration extends Model
 {
-    use HasFactory, HasWorkflow;
+    use HasFactory, HasWorkflow, HasDocuments;
     protected $table = 'provisional_registrations';
     protected $fillable = [
         'user_id',
@@ -62,19 +63,77 @@ class ProvisionalRegistration extends Model
         'status'
     ];
 
+    protected $guarded = [];
+
     protected $casts = [
+        'progress' => 'array',
         'site_address' => 'array',
-        'expansion_details' => 'array',
         'entrepreneurs_profile' => 'array',
+        'expansion_details' => 'array',
         'investment_components' => 'array',
         'means_of_finance' => 'array',
         'enclosures' => 'array',
         'other_documents' => 'array',
-        'progress' => 'array',
         'declaration_accepted' => 'boolean',
         'is_completed' => 'boolean',
         'is_apply' => 'boolean',
     ];
+
+    public function getDynamicDocuments()
+    {
+        $docs = [];
+
+        $enclosureLabels = [
+            'commencement_certificate' => 'Commencement Certificate',
+            'sanctioned_plan' => 'Sanctioned Plan / Layout',
+            'proof_of_identity' => 'Proof of Identity',
+            'proof_of_address' => 'Proof of Address',
+            'land_ownership' => 'Land Ownership Document (7/12)',
+            'project_report' => 'Project Report',
+            'incorporation_documents' => 'Incorporation Documents (MOA/AOA/Deed)',
+            'gst_registration' => 'GST Registration Certificate',
+            'special_category_proof' => 'Special Category Proof',
+            'ca_certificate' => 'CA Certificate',
+            'processing_fee_challan' => 'Processing Fee Challan',
+        ];
+
+        // Enclosures
+        if (!empty($this->enclosures) && is_array($this->enclosures)) {
+            foreach ($this->enclosures as $key => $data) {
+                if (!empty($data['file_path'])) {
+                    $docs[] = [
+                        'key' => "enclosures.{$key}",
+                        'label' => $enclosureLabels[$key] ?? ucwords(str_replace('_', ' ', $key)),
+                        'file_path' => $data['file_path']
+                    ];
+                }
+            }
+        }
+
+        // Other Documents
+        if (!empty($this->other_documents) && is_array($this->other_documents)) {
+            foreach ($this->other_documents as $index => $data) {
+                if (!empty($data['file_path'])) {
+                    $docs[] = [
+                        'key' => "other_documents.{$index}",
+                        'label' => $data['name'] ?? "Other Document " . ($index + 1),
+                        'file_path' => $data['file_path']
+                    ];
+                }
+            }
+        }
+
+        // Signature
+        if (!empty($this->signature_path)) {
+            $docs[] = [
+                'key' => 'signature_path',
+                'label' => 'Signature',
+                'file_path' => $this->signature_path
+            ];
+        }
+
+        return $docs;
+    }
 
     public function user()
     {

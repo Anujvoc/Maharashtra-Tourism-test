@@ -64,6 +64,15 @@ class WorkflowController extends Controller
 
         $this->workflowService->forward($application, Auth::user(), $request->input('remark'));
 
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Application approved and forwarded successfully.',
+                'new_stage' => $application->fresh()->current_stage, // Optional: return new stage for UI update
+                'new_status' => $application->fresh()->workflow_status
+            ]);
+        }
+
         return redirect()->back()->with('success', 'Application approved successfully.');
     }
 
@@ -80,6 +89,34 @@ class WorkflowController extends Controller
             return redirect()->back()->with('error', 'Remark is required for returning.');
         }
 
+        // Cleanup Site Visit Report if exists (when returning from Dy Director)
+        if (Auth::user()->hasRole('Dy Director')) {
+            // Find existing report
+            $existingReport = \App\Models\SiteVisitReport::where('application_id', $application->id)
+                ->where('application_type', get_class($application))
+                ->first();
+
+            if ($existingReport) {
+                // Delete File
+                if ($existingReport->file_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($existingReport->file_path)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($existingReport->file_path);
+                }
+
+                // Delete Taluka File
+                if ($existingReport->taluka_file_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($existingReport->taluka_file_path)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($existingReport->taluka_file_path);
+                }
+
+                // Delete Log if exists
+                if ($existingReport->workflowLog) {
+                    $existingReport->workflowLog->delete();
+                }
+
+                // Delete Report Record
+                $existingReport->delete();
+            }
+        }
+
         $this->workflowService->returnBack($application, Auth::user(), $remark);
 
         return redirect()->back()->with('success', 'Application returned successfully.');
@@ -92,6 +129,11 @@ class WorkflowController extends Controller
             abort(404);
 
         $application = $modelClass::findOrFail($id);
+
+        if (Auth::user()->hasRole('Clerk')) {
+            // User requested to ALLOW Clerk to send clarification.
+            // Removing the restriction.
+        }
 
         $remark = $request->input('remark');
         if (!$remark) {
@@ -110,16 +152,53 @@ class WorkflowController extends Controller
             abort(404);
 
         $application = $modelClass::findOrFail($id);
+        $user = Auth::user();
 
-        $request->validate([
-            'report_file' => 'required|file|mimes:pdf,jpg,png|max:2048',
-            'remark' => 'required'
-        ]);
+        // Cleanup old reports
+        $existingReport = \App\Models\SiteVisitReport::where('application_id', $application->id)
+            ->where('application_type', get_class($application))
+            ->first();
 
-        $path = $request->file('report_file')->store('site-reports');
+        if ($existingReport) {
+            // Delete File
+            if ($existingReport->file_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($existingReport->file_path)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($existingReport->file_path);
+            }
+            // Delete Taluka File
+            if ($existingReport->taluka_file_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($existingReport->taluka_file_path)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($existingReport->taluka_file_path);
+            }
 
-        $this->workflowService->siteVisitReport($application, Auth::user(), $request->input('remark'), $path);
+            // Delete Log
+            if ($existingReport->workflowLog) {
+                $existingReport->workflowLog->delete();
+            }
 
-        return redirect()->back()->with('success', 'Site visit report submitted.');
+            // Delete Report Record
+            $existingReport->delete();
+        }
+
+        $rules = [
+            'site_visit_report' => 'required|file|mimes:pdf|max:10240',
+            'remark' => 'required' // Keeping remark required as per original logic
+        ];
+
+        // Agriculture requires Taluka Report
+        if ($modelClass === AgricultureRegistration::class) {
+            $rules['taluka_report_file'] = 'required|file|mimes:pdf|max:10240';
+        }
+
+        $request->validate($rules);
+
+        $file_path = $request->file('site_visit_report')->store('site-reports', 'public');
+
+        $taluka_file_path = null;
+        if ($request->hasFile('taluka_report_file')) {
+            $taluka_file_path = $request->file('taluka_report_file')->store('site-reports', 'public');
+        }
+
+        $this->workflowService->siteVisitReport($application, $user, $request->input('remark'), $file_path, $taluka_file_path);
+
+        return redirect()->back()->with('success', 'Site visit report submitted successfully.');
     }
 }

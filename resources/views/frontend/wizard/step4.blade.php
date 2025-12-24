@@ -113,6 +113,23 @@
           Payment must be made through GRAS portal before submission
         </div>
       </div>
+
+      <div class="mb-3">
+        <label for="applicationFees" class="form-label required">
+          <i class="bi bi-currency-rupee form-icon"></i>
+        GRL Chalan (www.gras.mahakosh.gov.in) Number
+        </label>
+        <input name="grl_no" type="number" min="1"
+        class="form-control @error('grl_no') is-invalid @enderror"
+        value=""
+        required>
+
+        @error('grl_no')
+          <div class="text-danger">{{ $message }}</div>
+        @enderror
+
+
+      </div>
     </div>
 
     <div class="row mt-4">
@@ -190,4 +207,35 @@ $(function () {
   });
 });
 </script>
+<script>
+    $(document).ready(function () {
+
+        $('#applicationFees').on('change', function () {
+            let value = $(this).val();
+
+            if (value === '0') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Application Fee Not Paid',
+                    html: `
+                        Please go to <br>
+                        <a href="https://www.gras.mahakosh.gov.in" target="_blank">
+                            www.gras.mahakosh.gov.in
+                        </a><br>
+                        and pay the application fee.
+                    `,
+                    confirmButtonText: 'OK',
+                    allowOutsideClick: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        location.reload(); // page refresh
+                    }
+                });
+            }
+
+        });
+
+    });
+    </script>
+
 @endpush

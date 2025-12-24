@@ -199,6 +199,148 @@
             </div>
         @endif
 
+        <!-- Documents Requiring Clarification -->
+        @if(isset($clarificationDocs) && $clarificationDocs->isNotEmpty())
+            <div class="row mt-5">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0 fw-semibold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Action Required:
+                                Document Clarification</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Form</th>
+                                            <th>Document Name</th>
+                                            <th>Reason for Rejection</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($clarificationDocs as $doc)
+                                            <tr>
+                                                <td>{{ $doc->form_name }}<br><small class="text-muted">{{ $doc->app_id }}</small>
+                                                </td>
+                                                <td>
+                                                    {{ $doc->document_label }} <br>
+                                                    <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank"
+                                                        class="text-info small">View Old File</a>
+                                                </td>
+                                                <td class="text-danger">
+                                                    {!! nl2br(e($doc->remark)) !!}
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-primary btn-upload" data-id="{{ $doc->id }}"
+                                                        data-label="{{ $doc->document_label }}">
+                                                        Upload New
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload Modal -->
+            <div class="modal fade" id="uploadModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Re-upload Document</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Uploading: <strong id="upload-doc-label"></strong></p>
+                            <input type="hidden" id="upload-doc-id">
+                            <div class="mb-3">
+                                <label class="form-label">Select File</label>
+                                <input type="file" class="form-control" id="upload-file-input">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" id="confirm-upload">Upload</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @push('scripts')
+                <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const uploadModal = new bootstrap.Modal(document.getElementById('uploadModal'));
+                        let currentUploadId = null;
+
+                        document.querySelectorAll('.btn-upload').forEach(btn => {
+                            btn.addEventListener('click', function () {
+                                currentUploadId = this.dataset.id;
+                                document.getElementById('upload-doc-id').value = currentUploadId;
+                                document.getElementById('upload-doc-label').textContent = this.dataset.label;
+                                document.getElementById('upload-file-input').value = '';
+                                uploadModal.show();
+                            });
+                        });
+
+                        document.getElementById('confirm-upload').addEventListener('click', function () {
+                            const fileInput = document.getElementById('upload-file-input');
+                            if (fileInput.files.length === 0) {
+                                alert('Please select a file');
+                                return;
+                            }
+
+                            const formData = new FormData();
+                            formData.append('document_file', fileInput.files[0]);
+                            formData.append('_token', '{{ csrf_token() }}');
+
+                            const btn = this;
+                            btn.disabled = true;
+                            btn.textContent = 'Uploading...';
+
+                            fetch("{{ url('user/documents') }}/" + currentUploadId + "/update", {
+                                method: 'POST',
+                                body: formData
+                            })
+                                .then(res => res.json())
+                                .then(data => {
+                                    btn.disabled = false;
+                                    btn.textContent = 'Upload';
+                                    uploadModal.hide();
+
+                                    if (data.success) {
+                                        Swal.fire({
+                                            icon: 'success',
+                                            title: 'Success!',
+                                            text: 'Document uploaded successfully.',
+                                        }).then(() => {
+                                            location.reload();
+                                        });
+                                    } else {
+                                        Swal.fire({
+                                            icon: 'error',
+                                            title: 'Error',
+                                            text: data.error || 'Upload failed',
+                                        });
+                                    }
+                                })
+                                .catch(err => {
+                                    btn.disabled = false;
+                                    btn.textContent = 'Upload';
+                                    alert('Error uploading');
+                                });
+                        });
+                    });
+                </script>
+            @endpush
+        @endif
+
         <!-- Recent activity -->
         <div class="row mt-5">
             <div class="col-12">

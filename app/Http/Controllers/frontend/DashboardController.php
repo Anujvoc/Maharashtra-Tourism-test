@@ -12,10 +12,10 @@ use App\Models\frontend\ApplicationForm\AdventureApplication;
 use App\Models\frontend\ApplicationForm\AgricultureRegistration;
 use App\Models\frontend\ApplicationForm\Application;
 use App\Models\frontend\ApplicationForm\WomenCenteredTourismRegistration;
+use App\Models\frontend\ApplicationForm\IndustrialRegistration;
 
 class DashboardController extends Controller
 {
-
 
     public function index()
     {
@@ -58,8 +58,6 @@ class DashboardController extends Controller
 
         // Fetch Generated Certificates
         $certificates = collect();
-
-        // Check all application models for generated certificates
         $allModels = [
             'stamp-duty' => \App\Models\frontend\ApplicationForm\StampDutyApplication::class,
             'provisional' => \App\Models\frontend\ApplicationForm\ProvisionalRegistration::class,
@@ -89,8 +87,38 @@ class DashboardController extends Controller
                     ]);
                 }
             } catch (\Exception $e) {
-                // Skip models with missing columns
                 continue;
+            }
+        }
+
+        // Fetch Documents needing Clarification
+        $clarificationDocs = collect();
+        foreach ($allModels as $type => $modelClass) {
+            $userApps = $modelClass::where('user_id', $userId)->get();
+
+            foreach ($userApps as $app) {
+                if (method_exists($app, 'documents')) {
+                    $docs = $app->documents()->where('overall_status', 'Clarification')->get();
+                    foreach ($docs as $doc) {
+                        $remark = '';
+                        if ($doc->role_approvals && is_array($doc->role_approvals)) {
+                            foreach ($doc->role_approvals as $roleName => $approval) {
+                                if (($approval['status'] ?? '') === 'Rejected') {
+                                    $remark .= "$roleName: " . ($approval['remark'] ?? '') . "\n";
+                                }
+                            }
+                        }
+
+                        $clarificationDocs->push((object) [
+                            'id' => $doc->id,
+                            'form_name' => class_basename($modelClass),
+                            'document_label' => $doc->document_label,
+                            'file_path' => $doc->file_path,
+                            'remark' => trim($remark),
+                            'app_id' => $app->registration_id ?? $app->id
+                        ]);
+                    }
+                }
             }
         }
 
@@ -101,7 +129,8 @@ class DashboardController extends Controller
             'recentActivities',
             'totalUserApplications',
             'statusCounts',
-            'certificates'
+            'certificates',
+            'clarificationDocs'
         ));
     }
 
@@ -115,43 +144,19 @@ class DashboardController extends Controller
             ->with('status', 'You have been logged out successfully.');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
     }
-
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
-        //
     }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(string $id)
     {
-        //
     }
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
     {
-        //
     }
-
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
-        //
     }
 }

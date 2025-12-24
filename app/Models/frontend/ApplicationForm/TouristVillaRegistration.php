@@ -5,10 +5,11 @@ namespace App\Models\frontend\Applicationform;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Traits\HasWorkflow;
+use App\Traits\HasDocuments;
 
 class TouristVillaRegistration extends Model
 {
-    use HasFactory, HasWorkflow;
+    use HasFactory, HasWorkflow, HasDocuments;
     protected $fillable = [
         'application_id',
         'user_id',

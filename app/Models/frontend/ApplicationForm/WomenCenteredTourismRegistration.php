@@ -5,10 +5,11 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Traits\HasWorkflow;
+use App\Traits\HasDocuments;
 
 class WomenCenteredTourismRegistration extends Model
 {
-    use HasFactory, HasWorkflow;
+    use HasFactory, HasWorkflow, HasDocuments;
 
     protected $fillable = [
         'status',

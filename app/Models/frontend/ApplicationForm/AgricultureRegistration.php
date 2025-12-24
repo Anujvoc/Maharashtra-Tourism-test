@@ -4,10 +4,11 @@ namespace App\Models\frontend\ApplicationForm;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\HasWorkflow;
+use App\Traits\HasDocuments;
 
 class AgricultureRegistration extends Model
 {
-    use HasWorkflow;
+    use HasWorkflow, HasDocuments;
     protected $fillable = [
         'status',
         'is_apply',

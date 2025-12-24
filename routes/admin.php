@@ -48,7 +48,7 @@ Route::middleware(['auth', 'is_role:admin']) // adjust as needed
             ->name('divisions.data');
 
         // Caravan
-
+    
         Route::resource('amenities', CaravanAmenityController::class);
         Route::get('amenities-data', [CaravanAmenityController::class, 'data'])
             ->name('amenities.data');
@@ -154,5 +154,9 @@ Route::middleware(['auth', 'is_role:admin'])->prefix('admin')->name('admin.')->g
     Route::post('/workflow/{type}/{id}/return', [App\Http\Controllers\Admin\WorkflowController::class, 'returnBack'])->name('workflow.return');
     Route::post('/workflow/{type}/{id}/clarify', [App\Http\Controllers\Admin\WorkflowController::class, 'sendClarification'])->name('workflow.clarify');
     Route::post('/workflow/{type}/{id}/site-report', [App\Http\Controllers\Admin\WorkflowController::class, 'submitSiteReport'])->name('workflow.site-report');
+
+    // Document Verification Routes
+    Route::post('/documents/{id}/approve', [App\Http\Controllers\Admin\DocumentVerificationController::class, 'approve'])->name('documents.approve');
+    Route::post('/documents/{id}/reject', [App\Http\Controllers\Admin\DocumentVerificationController::class, 'reject'])->name('documents.reject');
 
 });

@@ -5,12 +5,13 @@ namespace App\Models\frontend\ApplicationForm;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
+use App\Traits\HasDocuments;
 use App\Traits\HasWorkflow;
 use App\Models\frontend\CaravanRegistration\CaravanRegistration;
 
 class Application extends Model
 {
-    use HasWorkflow;
+    use HasWorkflow, HasDocuments;
 
     protected $fillable = [
         'user_id',
@@ -114,7 +115,7 @@ class Application extends Model
     public function getProgressAttribute(): array
     {
         return match ((int) $this->application_form_id) {
-            9       => $this->getIndustrialProgress(),
+            9 => $this->getIndustrialProgress(),
             default => $this->getDefaultProgress(),
         };
     }
@@ -123,7 +124,7 @@ class Application extends Model
     public function getStepLabelAttribute(): string
     {
         return match ((int) $this->application_form_id) {
-            9       => $this->getIndustrialStepLabel(),
+            9 => $this->getIndustrialStepLabel(),
             default => $this->getDefaultStepLabel(),
         };
     }
@@ -158,7 +159,7 @@ class Application extends Model
         }
 
         return [
-            'done'  => $count,
+            'done' => $count,
             'total' => $steps,
         ];
     }
@@ -207,7 +208,7 @@ class Application extends Model
         }
 
         return [
-            'done'  => $count,
+            'done' => $count,
             'total' => $steps,
         ];
     }

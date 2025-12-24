@@ -31,7 +31,7 @@ class ApplicationFormsController extends Controller
     public function index()
     {
         $user = auth()->user();
-        $role = $user->getRoleNames()->first(); 
+        $role = $user->getRoleNames()->first();
         $models = [
             Application::class,
             AdventureApplication::class,
@@ -50,13 +50,12 @@ class ApplicationFormsController extends Controller
 
             $query = $modelClass::query();
 
-            // 🔐 ROLE BASED FILTER
             if (!$user->hasRole('Super Admin')) {
                 $query->where('current_stage', $role)
-                      ->whereNotIn('workflow_status', ['Certificate Generated']);
+                    ->whereNotIn('workflow_status', ['Certificate Generated']);
             }
 
-            $rows = $query->select(
+            $rows = $query->with('verificationDocuments')->select(
                 'id',
                 'application_form_id',
                 'user_id',
@@ -68,7 +67,15 @@ class ApplicationFormsController extends Controller
             )->get();
 
             foreach ($rows as $r) {
-                $registration_data->push((object)[
+                // Check for newly uploaded documents
+                $hasNewUploads = false;
+                if ($r->verificationDocuments) {
+                    $hasNewUploads = $r->verificationDocuments->contains(function ($doc) {
+                        return isset($doc->role_approvals['_meta']['is_reuploaded']) && $doc->role_approvals['_meta']['is_reuploaded'];
+                    });
+                }
+
+                $registration_data->push((object) [
                     'id' => $r->id,
                     'application_form_id' => $r->application_form_id,
                     'registration_id' => $r->registration_id,
@@ -77,12 +84,13 @@ class ApplicationFormsController extends Controller
                     'submitted_at' => $r->submitted_at ? Carbon::parse($r->submitted_at) : null,
                     'model' => $modelClass,
                     'original' => $r,
+                    'has_new_uploads' => $hasNewUploads,
                 ]);
             }
         }
 
         $registration_data = $registration_data
-            ->sortByDesc(fn ($item) => $item->submitted_at)
+            ->sortByDesc(fn($item) => $item->submitted_at)
             ->values();
 
         return view('admin.ApplicationForms.index', compact('registration_data'));
@@ -140,7 +148,7 @@ class ApplicationFormsController extends Controller
 
     public function show($modelParam, $id)
     {
-        // 1. Map URL param (from class_basename lowercase) to Model Class & Type Slug
+
         $mapping = [
             'adventureapplication' => [
                 'model' => AdventureApplication::class,
@@ -196,6 +204,100 @@ class ApplicationFormsController extends Controller
 
         $application = $modelClass::findOrFail($id);
 
+
+        $usesHasDocuments = in_array(\App\Traits\HasDocuments::class, class_uses_recursive($application));
+
+        if ($usesHasDocuments) {
+            $existingDocsCount = $application->verificationDocuments()->count();
+
+            // 1. Sync Logic (Additive) - Check for new/missing documents
+            // A. Dynamic Documents (JSON fields etc.)
+            if (method_exists($application, 'getDynamicDocuments')) {
+                $dynamicDocs = $application->getDynamicDocuments();
+                foreach ($dynamicDocs as $doc) {
+                    $application->verificationDocuments()->firstOrCreate(
+                        ['document_key' => $doc['key']],
+                        [
+                            'document_label' => $doc['label'],
+                            'file_path' => $doc['file_path'],
+                            'overall_status' => 'Pending',
+                            'role_approvals' => []
+                        ]
+                    );
+                }
+            }
+            // B. Standard Column Mapping
+            elseif (method_exists($application, 'getDocumentMapping')) {
+                $mapping = $application->getDocumentMapping();
+                foreach ($mapping as $column => $label) {
+                    if (!empty($application->$column)) {
+                        $application->verificationDocuments()->firstOrCreate(
+                            ['document_key' => $column],
+                            [
+                                'document_label' => $label,
+                                'file_path' => $application->$column,
+                                'overall_status' => 'Pending',
+                                'role_approvals' => []
+                            ]
+                        );
+                    }
+                }
+            }
+
+            // C. Fallback: Legacy Column Sync (only if no new system docs exist at all, to avoid duplication)
+            // Note: We might want to keep this for legacy apps, but for now, if the Model has traits, we rely on them.
+            if ($application->verificationDocuments()->count() === 0) {
+                // Do we still need to check legacy columns? 
+                // If the model DOES NOT have HasDocuments/getDynamicDocuments, we can't do anything here anyway with the new system.
+                // So we assume the new system is the source of truth if the trait exists.
+            }
+
+            // 2. Sync from 'documents' table (Wizard Uploads) - Based on registration_id
+
+            if (!empty($application->registration_id)) {
+                $parentApp = \App\Models\frontend\ApplicationForm\Application::where('registration_id', $application->registration_id)->first();
+
+                if ($parentApp && $parentApp->documents->count() > 0) {
+                    $docLabels = [
+                        'aadhar' => 'Aadhaar Card',
+                        'pan' => 'PAN Card',
+                        'business_pan' => 'Business PAN',
+                        'udyam' => 'Udyam Registration',
+                        'business_reg' => 'Business Registration',
+                        'ownership' => 'Ownership Proof',
+                        'property_photos' => 'Property Photo',
+                        'character' => 'Character Certificate',
+                        'society_noc' => 'Society NOC',
+                        'building_perm' => 'Building Permission',
+                        'gras_copy' => 'GRAS Challan',
+                        'undertaking' => 'Undertaking',
+                        'rental_agreement' => 'Rental Agreement',
+                        'address_proof' => 'Address Proof',
+                    ];
+
+                    foreach ($parentApp->documents as $pDoc) {
+                        $exists = $application->verificationDocuments()
+                            ->where('file_path', $pDoc->path)
+                            ->exists();
+
+                        if (!$exists) {
+                            $label = $docLabels[$pDoc->category] ?? ucfirst(str_replace('_', ' ', $pDoc->category));
+
+                            $application->verificationDocuments()->create([
+                                'document_key' => $pDoc->category,
+                                'document_label' => $label,
+                                'file_path' => $pDoc->path,
+                                'overall_status' => 'Pending',
+                                'role_approvals' => []
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            $application->refresh();
+        }
+
         return view('admin.ApplicationForms.show', [
             'application' => $application,
             'type' => $typeSlug
@@ -228,9 +330,7 @@ class ApplicationFormsController extends Controller
 
         $application = $modelClass::findOrFail($id);
 
-        // If it's the Generic Application, use the nice wizard report
         if ($type === 'generic-application') {
-            // Load relations expected by the view
             $application->load([
                 'applicant',
                 'property',
@@ -240,7 +340,6 @@ class ApplicationFormsController extends Controller
                 'documents'
             ]);
 
-            // Fake data for QR and Logic if needed, similar to ApplicationController
             $qrCode = 1;
             $logoPath = public_path('frontend/mah-logo-300x277.png');
             $logoBase64 = null;
@@ -260,7 +359,67 @@ class ApplicationFormsController extends Controller
             ]);
         }
 
-        // For other types, use the generic admin report
+        // Check for specific view
+        if (view()->exists("admin.ApplicationForms.reports.{$type}")) {
+
+            $data = [
+                'application' => $application, // Keep generic variable
+                'registration' => $application, // Alias as per user request
+                'type' => $type
+            ];
+
+            // Specific Data Loading for Provisional
+            if ($type === 'provisional') {
+                $data['regions'] = \Illuminate\Support\Facades\DB::table('divisions')->select('id', 'name')->get();
+                $data['districts'] = \Illuminate\Support\Facades\DB::table('districts')->select('id', 'name')->get();
+                $data['categories'] = \App\Models\Admin\Master\Category::all();
+                $data['applicantTypes'] = \App\Models\Admin\Master\Enterprise::select('id', 'name')->get();
+                $data['application_form'] = \App\Models\Admin\ApplicationForm::find($application->application_form_id);
+
+                // Resolve derived variables that the view expects
+                $data['enterprise'] = \App\Models\Admin\Master\Enterprise::find($application->enterprise_type);
+                $data['division'] = \Illuminate\Support\Facades\DB::table('divisions')->where('id', $application->division_id)->first();
+                $data['districtsData'] = \Illuminate\Support\Facades\DB::table('districts')->where('id', $application->district_id)->first();
+
+                $cat = \App\Models\Admin\Master\Category::find($application->project_category); // Assuming project_category holds ID, or we need to check if it holds name
+                // If project_category is a name, this lookup might fail. Let's check if it's numeric.
+                if (is_numeric($application->project_category)) {
+                    $data['Category_name'] = $cat ? $cat->name : $application->project_category;
+                } else {
+                    $data['Category_name'] = $application->project_category;
+                }
+            }
+
+            return view("admin.ApplicationForms.reports.{$type}", $data);
+        }
+
+        // Debug/Fallback Explicit Check
+        if ($type === 'provisional') {
+            $data = [
+                'application' => $application,
+                'registration' => $application,
+                'type' => $type
+            ];
+            // Load data again if the generic block above failed (it shouldn't if I duplicate logic, but better to just fix the logic)
+            $data['regions'] = \Illuminate\Support\Facades\DB::table('divisions')->select('id', 'name')->get();
+            $data['districts'] = \Illuminate\Support\Facades\DB::table('districts')->select('id', 'name')->get();
+            $data['categories'] = \App\Models\Admin\Master\Category::all();
+            $data['applicantTypes'] = \App\Models\Admin\Master\Enterprise::select('id', 'name')->get();
+            $data['application_form'] = \App\Models\Admin\ApplicationForm::find($application->application_form_id);
+            $data['enterprise'] = \App\Models\Admin\Master\Enterprise::find($application->enterprise_type);
+            $data['division'] = \Illuminate\Support\Facades\DB::table('divisions')->where('id', $application->division_id)->first();
+            $data['districtsData'] = \Illuminate\Support\Facades\DB::table('districts')->where('id', $application->district_id)->first();
+
+            if (is_numeric($application->project_category)) {
+                $cat = \App\Models\Admin\Master\Category::find($application->project_category);
+                $data['Category_name'] = $cat ? $cat->name : $application->project_category;
+            } else {
+                $data['Category_name'] = $application->project_category;
+            }
+
+            return view('frontend.Application.provisional.reports', $data);
+        }
+
         return view('admin.ApplicationForms.generic-report', [
             'application' => $application,
             'type' => $type
@@ -297,13 +456,6 @@ class ApplicationFormsController extends Controller
 
     public function downloadCertificate($type, $id)
     {
-        // For now, reuse preview or redirect to it with print trigger?
-        // Ideally use PDF library like dompdf or snappy.
-        // Assuming no PDF lib installed, we just show view and user uses print->save as pdf.
-        // But the user asked for "download".
-        // I will return the view with a specific request to trigger print dialog or use a dummy pdf download header if I had a generator.
-
-        // Since I cannot install packages, I will redirect to preview with a print trigger.
         return redirect()->route('admin.certificate.show', ['type' => $type, 'id' => $id, 'print' => 'true']);
     }
 
@@ -322,7 +474,6 @@ class ApplicationFormsController extends Controller
         $registration_data = collect();
 
         foreach ($models as $modelClass) {
-            // Select only needed columns to reduce memory usage
             $rows = $modelClass::select(
                 'id',
                 'application_form_id',
@@ -351,44 +502,5 @@ class ApplicationFormsController extends Controller
         return view('frontend.wizard.index', compact('apps', 'registration_data', 'forms'));
     }
 
-    /** ApplicationForms
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
 }

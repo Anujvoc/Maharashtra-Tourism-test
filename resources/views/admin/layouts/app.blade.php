@@ -38,8 +38,8 @@
     <link href="{{ asset('backend/assets/css/bootstrap-extended.css') }}" rel="stylesheet">
     <link href="{{ asset('backend/assets/plugins/datatable/css/dataTables.bootstrap5.min.css') }}" rel="stylesheet" />
     <!-- Sass Compiled CSS (make sure they are compiled into public/sass or public/css) -->
-    <link rel="stylesheet" href="assets/css/extra-icons.css">
-    <link href="assets/css/bootstrap-extended.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('backend/assets/css/extra-icons.css') }}">
+    <link href="{{ asset('backend/assets/css/bootstrap-extended.css') }}" rel="stylesheet">
     <link href="{{ asset('backend/sass/main.css') }}" rel="stylesheet">
     <link href="{{ asset('backend/sass/dark-theme.css') }}" rel="stylesheet">
     <link href="{{ asset('backend/sass/blue-theme.css') }}" rel="stylesheet">

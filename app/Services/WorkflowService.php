@@ -86,6 +86,23 @@ class WorkflowService
             $currentStage = $application->current_stage;
             $nextStage = $this->getNextStage($application);
 
+            // 🔍 DOCUMENT VERIFICATION CHECK
+            // Ensure all documents for this application are approved by the CURRENT role.
+            if (method_exists($application, 'verificationDocuments')) {
+                $role = $user->getRoleNames()->first();
+                $pendingDocs = $application->verificationDocuments->filter(function ($doc) use ($role) {
+                    // If doc status for this role is NOT Approved, it's pending/rejected
+                    // verificationDocuments stores approval in JSON role_approvals
+                    $approvals = $doc->role_approvals ?? [];
+                    $status = $approvals[$role]['status'] ?? 'Pending';
+                    return $status !== 'Approved';
+                });
+
+                if ($pendingDocs->isNotEmpty()) {
+                    throw new \Exception("Cannot forward: " . $pendingDocs->count() . " documents are not approved by " . $role);
+                }
+            }
+
             // Log the approval
             ApplicationWorkflowLog::create([
                 'application_type' => get_class($application),
@@ -153,6 +170,26 @@ class WorkflowService
             ]);
 
             if ($prevStage) {
+                // RESET DOCUMENT STATUS FOR PREVIOUS STAGE
+                // If Asst Director returns to Clerk, Clerk's 'Approved' docs become 'Pending'
+                if (method_exists($application, 'verificationDocuments')) {
+                    foreach ($application->verificationDocuments as $doc) {
+                        $approvals = $doc->role_approvals ?? [];
+
+                        // UNCONDITIONAL RESET (User Request: "sara reset ho jay")
+                        // Reset Previous Stage (Clerk) - Force re-verification
+                        if (isset($approvals[$prevStage])) {
+                            $approvals[$prevStage]['status'] = 'Pending';
+                        }
+
+                        // Reset Current Stage (Asst Director) - Show Pending in history
+                        $approvals[$currentStage]['status'] = 'Pending';
+
+                        $doc->role_approvals = $approvals;
+                        $doc->save();
+                    }
+                }
+
                 $application->current_stage = $prevStage;
                 $application->workflow_status = self::STATUS_RETURNED;
                 $application->save();
@@ -178,8 +215,7 @@ class WorkflowService
                 'is_public' => true // VISIBLE TO USER
             ]);
 
-        
-            $application->current_stage = self::ROLE_CLERK;
+            // $application->current_stage = self::ROLE_CLERK; // REMOVED: Keep at current stage
             $application->workflow_status = self::STATUS_CLARIFICATION;
             $application->save();
 
@@ -187,31 +223,35 @@ class WorkflowService
         });
     }
 
-    public function siteVisitReport($application, $user, $remark, $file_path)
+    public function siteVisitReport($application, $user, $remark, $file_path, $taluka_file_path = null)
     {
-        return DB::transaction(function () use ($application, $user, $remark, $file_path) {
+        return DB::transaction(function () use ($application, $user, $remark, $file_path, $taluka_file_path) {
             $currentStage = $application->current_stage;
 
             // Log
-            ApplicationWorkflowLog::create([
+            $log = ApplicationWorkflowLog::create([
                 'application_type' => get_class($application),
                 'application_id' => $application->id,
                 'stage' => $currentStage,
                 'status' => self::STATUS_SITE_VISIT,
                 'user_id' => $user->id,
-                'remark' => $remark . " (Report: $file_path)",
+                'remark' => $remark,
                 'is_public' => false
             ]);
 
+            // Create Site Visit Report Entry
+            \App\Models\SiteVisitReport::create([
+                'application_type' => get_class($application),
+                'application_id' => $application->id,
+                'workflow_log_id' => $log->id,
+                'user_id' => $user->id,
+                'file_path' => $file_path,
+                'taluka_file_path' => $taluka_file_path
+            ]);
 
-            $nextStage = $this->getNextStage($application);
-            if ($nextStage) {
-                $application->current_stage = $nextStage;
-                $application->workflow_status = self::STATUS_PENDING;
-            }
-            $application->save();
+            $application->touch(); // Update updated_at
 
-            return true;
+            return $log;
         });
     }
 }

@@ -47,7 +47,7 @@ class ApplicationController extends Controller
             ->latest()
             ->get();
 
-            // dd($apps);
+        // dd($apps);
 
         // Lazy Sync for Existing Data (Temporary Fix)
         foreach ($apps as $app) {
@@ -89,9 +89,9 @@ class ApplicationController extends Controller
 
 
         $models = [
-            //new models add here
+                //new models add here
             IndustrialRegistration::class,
-//till here
+                //till here
             StampDutyApplication::class,
             ProvisionalRegistration::class,
             EligibilityRegistration::class,
@@ -145,7 +145,7 @@ class ApplicationController extends Controller
                     'current_step' => $r->current_step ?? null,      // sirf provisional me hoga
                     'workflow_status' => $r->workflow_status ?? null,
                     'model' => $modelClass,
-                    'has_remarks'     => ($r->public_remarks_count ?? 0) > 0,
+                    'has_remarks' => ($r->public_remarks_count ?? 0) > 0,
                 ]);
             });
         }
@@ -297,36 +297,38 @@ class ApplicationController extends Controller
     }
 
     public function getRemarks($type, $id)
-{
-    $map = [
-        'adventure' => AdventureApplication::class,
-        'agriculture' => AgricultureRegistration::class,
-        'women-centered' => WomenCenteredTourismRegistration::class,
-        'industrial' => \App\Models\frontend\ApplicationForm\IndustrialRegistration::class,
-        'provisional' => ProvisionalRegistration::class,
-        'eligibility' => EligibilityRegistration::class,
-        'stamp-duty' => StampDutyApplication::class,
-        'tourism-apartment' => TourismApartment::class,
-        'caravan' => CaravanRegistration::class,
-        'generic-application' => Application::class,
-    ];
+    {
+        $map = [
+            'adventure' => AdventureApplication::class,
+            'agriculture' => AgricultureRegistration::class,
+            'women-centered' => WomenCenteredTourismRegistration::class,
+            'industrial' => \App\Models\frontend\ApplicationForm\IndustrialRegistration::class,
+            'provisional' => ProvisionalRegistration::class,
+            'eligibility' => EligibilityRegistration::class,
+            'stamp-duty' => StampDutyApplication::class,
+            'tourism-apartment' => TourismApartment::class,
+            'caravan' => CaravanRegistration::class,
+            'generic-application' => Application::class,
+        ];
 
-    $modelClass = $map[$type] ?? null;
+        $modelClass = $map[$type] ?? null;
 
-    if (!$modelClass) {
-        return response()->json(['error' => 'Invalid application type'], 400);
-    }
+        if (!$modelClass) {
+            return response()->json(['error' => 'Invalid application type'], 400);
+        }
 
-    // ✅ sirf usi user ka record uthega jiska login hai
-    $application = $modelClass::where('id', $id)
-        ->where('user_id', auth()->id())
-        ->firstOrFail();
+        // ✅ sirf usi user ka record uthega jiska login hai
+        $application = $modelClass::where('id', $id)
+            ->where('user_id', auth()->id())
+            ->with([
+                'workflowLogs' => function ($q) {
+                    $q->where('is_public', true)->orderBy('created_at', 'desc');
+                },
+                'verificationDocuments'
+            ])
+            ->firstOrFail();
 
-    $logs = $application->workflowLogs()
-        ->where('is_public', true)
-        ->orderBy('created_at', 'desc')
-        ->get()
-        ->map(function ($log) {
+        $logs = $application->workflowLogs->map(function ($log) {
             return [
                 'stage' => $log->stage,
                 'status' => $log->status,
@@ -335,8 +337,62 @@ class ApplicationController extends Controller
             ];
         });
 
-    return response()->json(['logs' => $logs]);
-}
+        // Fetch Rejected or Re-uploaded Documents
+        $rejectedDocs = collect();
+        if ($application->verificationDocuments) {
+            $rejectedDocs = $application->verificationDocuments->filter(function ($doc) {
+                $approvals = $doc->role_approvals ?? [];
+
+                // Check if re-uploaded
+                if (isset($approvals['_meta']['is_reuploaded']) && $approvals['_meta']['is_reuploaded']) {
+                    return true;
+                }
+
+                // Check if ANY role has rejected this document
+                foreach ($approvals as $role => $data) {
+                    if (isset($data['status']) && $data['status'] === 'Rejected') {
+                        return true;
+                    }
+                }
+                return false;
+            })->map(function ($doc) {
+                $approvals = $doc->role_approvals ?? [];
+                $isReuploaded = isset($approvals['_meta']['is_reuploaded']) && $approvals['_meta']['is_reuploaded'];
+
+                // Find rejection details
+                $rejectionData = collect($approvals)->map(function ($data, $role) {
+                    return array_merge($data, ['role' => $role]);
+                })->where('status', 'Rejected')->first();
+
+                $remark = 'Rejected';
+                if ($rejectionData) {
+                    $roleName = ucwords(str_replace(['_', '-'], ' ', $rejectionData['role']));
+
+                    if ($isReuploaded) {
+                        $remark = "Pending Approval ({$roleName})";
+                    } else {
+                        // Adjust role names if needed (e.g. 'Dy Director' from 'dy_director')
+                        $remark = "Rejected by {$roleName}: " . ($rejectionData['remark'] ?? '');
+                    }
+                } elseif ($isReuploaded) {
+                    $remark = 'Pending Approval';
+                }
+
+                return [
+                    'id' => $doc->id,
+                    'label' => $doc->document_label,
+                    'file_path' => $doc->file_path,
+                    'remark' => $remark,
+                    'is_reuploaded' => $isReuploaded
+                ];
+            })->values();
+        }
+
+        return response()->json([
+            'logs' => $logs,
+            'rejected_docs' => $rejectedDocs
+        ]);
+    }
 
     public function getRemarks123($type, $id)
     {

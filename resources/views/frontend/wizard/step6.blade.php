@@ -159,7 +159,7 @@
         'society_noc' => 'NOC from Society*',
         'building_perm' => 'Building Permission/Completion Certificate*',
         'gras_copy' => 'Copy of GRAS Challan*',
-        'undertaking' => 'Undertaking (Duly signed)*',
+        'undertaking' => 'Undertaking (Duly signed)* ',
         'rental_agreement' => 'Rental Agreement / Management Contract (if applicable)',
       ];
     @endphp
@@ -193,6 +193,13 @@
               @if(in_array($key, $missing))
                 <div class="missing-note">This document is required. Please upload to proceed.</div>
               @endif
+              @if($key === 'undertaking')
+    <div class="mt-1">
+      <a href="{{ url('frontend/Undertaking_Final.docx') }}" download class="text-primary">
+        <i class="bi bi-download me-1"></i> Download Undertaking Form
+      </a>
+    </div>
+  @endif
 
               @if($isPropertyPhotos)
                 <div class="photo-count">

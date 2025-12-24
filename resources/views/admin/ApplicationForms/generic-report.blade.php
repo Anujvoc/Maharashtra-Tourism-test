@@ -167,6 +167,7 @@
         @php
             // Segregate Attributes
             $attributes = $application->getAttributes();
+            // dd($attributes);
             $skip = ['id', 'user_id', 'slug_id', 'created_at', 'updated_at', 'deleted_at', 'application_form_id', 'current_step', 'progress', 'is_apply', 'is_completed', 'submitted_at', 'status', 'registration_id'];
 
             $infoFields = [];
@@ -225,10 +226,71 @@
                     <hr class="my-4">
                     <h6 class="text-muted mb-3 text-uppercase fw-bold">Additional Details</h6>
                     @foreach($longFields as $key => $value)
-                        <div class="mb-3">
-                            <div class="preview-label">{{ ucwords(str_replace('_', ' ', $key)) }}</div>
+                        <div class="mb-4">
+                            <div class="preview-label mb-2">{{ ucwords(str_replace('_', ' ', $key)) }}</div>
                             <div class="bg-light p-3 rounded small">
-                                @if(is_string($value))
+                                @if(is_array($value) && (in_array($key, ['enclosures', 'other_documents', 'other_docs', 'entrepreneurs', 'entrepreneurs_profile', 'means_of_finance', 'investment_components', 'cost_component']) || isset($value[0]) && is_array($value[0])))
+                                    {{-- Render as Table --}}
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-sm mb-0 bg-white">
+                                            <thead>
+                                                @if(isset($value[0]) && is_array($value[0]))
+                                                    <tr>
+                                                        @foreach(array_keys($value[0]) as $header)
+                                                             <th>{{ ucwords(str_replace('_', ' ', $header)) }}</th>
+                                                        @endforeach
+                                                    </tr>
+                                                @else
+                                                    <tr>
+                                                        <th>Key</th>
+                                                        <th>Value</th>
+                                                    </tr>
+                                                @endif
+                                            </thead>
+                                            <tbody>
+                                                @if(isset($value[0]) && is_array($value[0]))
+                                                    {{-- Array of objects --}}
+                                                    @foreach($value as $row)
+                                                        <tr>
+                                                            @foreach($row as $cellKey => $cellValue)
+                                                                <td>
+                                                                    @if(is_string($cellValue) && Str::contains($cellKey, ['path', 'file']))
+                                                                        <a href="{{ asset('storage/'.$cellValue) }}" target="_blank" class="btn btn-xs btn-link p-0">View File</a>
+                                                                    @else
+                                                                        {{ is_array($cellValue) ? json_encode($cellValue) : $cellValue }}
+                                                                    @endif
+                                                                </td>
+                                                            @endforeach
+                                                        </tr>
+                                                    @endforeach
+                                                @else
+                                                     {{-- Associative Array --}}
+                                                     @foreach($value as $subKey => $subValue)
+                                                        <tr>
+                                                            <td class="fw-bold">{{ ucwords(str_replace('_', ' ', $subKey)) }}</td>
+                                                            <td>
+                                                                @if(is_array($subValue))
+                                                                    {{-- Nested Array (e.g. Enclosures with file_path) --}}
+                                                                     @foreach($subValue as $nKey => $nVal)
+                                                                        <div><strong>{{ ucwords(str_replace('_', ' ', $nKey)) }}:</strong>
+                                                                             @if(Str::contains($nKey, ['path', 'file']) && is_string($nVal))
+                                                                                <a href="{{ asset('storage/'.$nVal) }}" target="_blank" class="text-primary">View</a>
+                                                                             @else
+                                                                                {{ is_array($nVal) ? json_encode($nVal) : $nVal }}
+                                                                             @endif
+                                                                        </div>
+                                                                     @endforeach
+                                                                @else
+                                                                    {{ $subValue }}
+                                                                @endif
+                                                            </td>
+                                                        </tr>
+                                                     @endforeach
+                                                @endif
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                @elseif(is_string($value))
                                     {{ $value }}
                                 @else
                                     <pre class="mb-0">{{ json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
