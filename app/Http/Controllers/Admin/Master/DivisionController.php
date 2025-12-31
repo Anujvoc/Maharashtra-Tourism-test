@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin\Master;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Admin\master\Divisions;
+use App\Models\Admin\Master\Divisions;
 use App\Models\frontend\Districts;
 use App\Models\District;
 //we will import the model i.e db information where it is stored model means db
@@ -18,7 +18,7 @@ class DivisionController extends Controller
     }
 
     public function create()
-    {   
+    {
         $districts=District::where('state_id',14)->orderBy('name','asc')->get();
         //we will fetch all the records from district table where state is maharshatra as we form will be filled for maharshatra only
         return view('admin.master.divisions.create', compact('districts'));
@@ -56,7 +56,7 @@ public function store(Request $request)
 {
     $division = Divisions::findOrFail($id);
     $districts=District::where('state_id',14)->orderBy('name','asc')->get();
-    
+
     return view(
         'admin.master.divisions.edit',
         compact('division', 'districts')

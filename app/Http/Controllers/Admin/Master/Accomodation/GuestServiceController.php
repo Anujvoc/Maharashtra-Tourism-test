@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin\Master\Accomodation;
 
 use App\Http\Controllers\Controller;
-use App\Models\Admin\master\Accomodation\GuestService;
+use App\Models\Admin\Master\Accomodation\GuestService;
 use Illuminate\Http\Request;
 
 
@@ -24,7 +24,7 @@ class GuestServiceController extends Controller
 
         return \Yajra\DataTables\Facades\DataTables::of($query)
             ->addIndexColumn()
-           
+
             ->editColumn('is_active', function ($row) {
                 return $row->is_active
                     ? '<span class="badge bg-success">Active</span>'
@@ -32,7 +32,7 @@ class GuestServiceController extends Controller
             })
             ->addColumn('actions', function ($row) {
                 $edit = route('admin.master.guestService.edit', $row);
-              
+
                 $delete = route('admin.master.guestService.destroy',$row);
                 return '
                     <a href="' . $edit . '" class="btn btn-sm btn-primary me-1">
@@ -44,14 +44,14 @@ class GuestServiceController extends Controller
                             <i class="bi bi-trash"></i>
                         </button>
                     </form>' . '
-                   
+
 
                 ';
             })
             ->rawColumns(['is_active', 'actions'])
             ->make(true);
     }
- 
+
 
 
     /**
@@ -59,7 +59,7 @@ class GuestServiceController extends Controller
      */
     public function create()
     {
-         //dd('ada'); 
+         //dd('ada');
          //resources\views\admin\master\Accomodation\generalRequirement\create.blade.php
         return view('admin.master.Accomodation.guestService.create');
     }

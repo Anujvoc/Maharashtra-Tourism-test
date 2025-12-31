@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin\Master\Accomodation;
 
 use App\Http\Controllers\Controller;
-use App\Models\Admin\master\Accomodation\GeneralRequirement;
+use App\Models\Admin\Master\Accomodation\GeneralRequirement;
 use Illuminate\Http\Request;
 
 class GeneralRequirementController extends Controller

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin\Master\Caravan;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Admin\master\Caravan\CaravanOptionalFeature;
+use App\Models\Admin\Master\Caravan\CaravanOptionalFeature;
 use Illuminate\Validation\Rule;
 
 
@@ -15,7 +15,7 @@ class CaravanOptionalFeatureController extends Controller
      */
     public function index()
     {
-        
+
         return view('admin.master.caravan.optionalFeature.index');
     }
 
@@ -25,7 +25,7 @@ class CaravanOptionalFeatureController extends Controller
 
         return \Yajra\DataTables\Facades\DataTables::of($query)
             ->addIndexColumn()
-           
+
             ->editColumn('is_active', function ($row) {
                 return $row->is_active
                     ? '<span class="badge bg-success">Active</span>'
@@ -55,7 +55,7 @@ class CaravanOptionalFeatureController extends Controller
      * Show the form for creating a new resource.
      */
     public function create()
-    { 
+    {
        // resources\views\admin\master\caravan\optionalFeature\create.blade.php
         return view('admin.master.caravan.optionalFeature.create');
     }
@@ -73,15 +73,15 @@ class CaravanOptionalFeatureController extends Controller
 
 
     try {
-    
+
         CaravanOptionalFeature::create($validatedData);
 
-    
+
         return redirect()->route('admin.master.optionalfeatures.index')
                          ->with('success', 'Caravan Optional Feature successfully created!');
     } catch (\Exception $e) {
-              
-        
+
+
         return redirect()->back()
                          ->withInput()
                          ->with('error', 'An error occurred while creating the caravan optional feature. Please try again.' . $e->getMessage());

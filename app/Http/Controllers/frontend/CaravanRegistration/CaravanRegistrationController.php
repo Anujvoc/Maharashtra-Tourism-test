@@ -4,10 +4,10 @@ namespace App\Http\Controllers\frontend\CaravanRegistration;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin\Master\Caravan\CaravanAmenity;
-use App\Models\Admin\master\Caravan\CaravanOptionalFeature;
+use App\Models\Admin\Master\Caravan\CaravanOptionalFeature;
 use App\Models\Admin\Master\Caravan\CaravanType;
-use App\Models\Admin\master\Divisions;
-use App\Models\Admin\master\Enterprise;
+use App\Models\Admin\Master\Divisions;
+use App\Models\Admin\Master\Enterprise;
 use App\Models\District;
 use App\Models\frontend\CaravanRegistration\CaravanRegistration;
 use Illuminate\Http\Request;

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin\Master\Caravan;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Admin\master\Caravan\CaravanType;
+use App\Models\Admin\Master\Caravan\CaravanType;
 use Illuminate\Validation\Rule;
 
 
@@ -24,7 +24,7 @@ class CaravanTypeController extends Controller
 
         return \Yajra\DataTables\Facades\DataTables::of($query)
             ->addIndexColumn()
-           
+
             ->editColumn('is_active', function ($row) {
                 return $row->is_active
                     ? '<span class="badge bg-success">Active</span>'
@@ -54,7 +54,7 @@ class CaravanTypeController extends Controller
      * Show the form for creating a new resource.
      */
     public function create()
-    { 
+    {
        // resources\views\admin\master\caravan\type\create.blade.php
         return view('admin.master.caravan.type.create');
     }
@@ -72,15 +72,15 @@ class CaravanTypeController extends Controller
 
 
     try {
-    
+
         CaravanType::create($validatedData);
 
-    
+
         return redirect()->route('admin.master.types.index')
                          ->with('success', 'Caravan Type successfully created!');
     } catch (\Exception $e) {
-              
-        
+
+
         return redirect()->back()
                          ->withInput()
                          ->with('error', 'An error occurred while creating the caravan type. Please try again.' . $e->getMessage());

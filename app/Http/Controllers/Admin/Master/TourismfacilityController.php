@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin\Master;
 
 use App\Http\Controllers\Controller;
-use App\Models\Admin\master\Tourismfacility;
+use App\Models\Admin\Master\Tourismfacility;
 use Illuminate\Http\Request;
 
 class TourismfacilityController extends Controller
@@ -35,7 +35,7 @@ class TourismfacilityController extends Controller
 
         return \Yajra\DataTables\Facades\DataTables::of($query)
             ->addIndexColumn()
-           
+
             ->editColumn('is_active', function ($row) {
                 return $row->is_active
                     ? '<span class="badge bg-success">Active</span>'
@@ -43,7 +43,7 @@ class TourismfacilityController extends Controller
             })
             ->addColumn('actions', function ($row) {
                 $edit = route('admin.tourism-facilities.edit', $row);
-                
+
                 return '
                     <a href="' . $edit . '" class="btn btn-sm btn-primary me-1">
                         <i class="bi bi-pencil-square"></i>

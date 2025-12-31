@@ -21,7 +21,7 @@ use App\Models\Admin\ApplicationForm;
 use App\Models\District;
 use App\Models\Country;
 use App\Models\State;
-use App\Models\Admin\master\Enterprise;
+use App\Models\Admin\Master\Enterprise;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\Admin\Master\Category;
@@ -506,5 +506,5 @@ class ProvisionalRegistrationController extends Controller
         ]);
     }
 
-   
+
 }

@@ -56,12 +56,7 @@ class WorkflowController extends Controller
 
         $application = $modelClass::findOrFail($id);
 
-        // Authorization check could be here (e.g. is user allowed to approve at this stage?)
-        // Assuming middleware handles role access to this controller generally.
-        // But we should verify if the user's role matches the application's current stage.
-        // Simple check:
-        // if (!auth()->user()->hasRole($application->current_stage)) { return back()->with('error', 'Unauthorized'); }
-
+      
         $this->workflowService->forward($application, Auth::user(), $request->input('remark'));
 
         if ($request->ajax() || $request->wantsJson()) {

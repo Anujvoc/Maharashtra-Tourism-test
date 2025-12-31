@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin\Master\Accomodation;
 
 use App\Http\Controllers\Controller;
-use App\Models\Admin\master\Accomodation\AdditionalFeature;
+use App\Models\Admin\Master\Accomodation\AdditionalFeature;
 use Illuminate\Http\Request;
 
 use Illuminate\Routing\Controllers\HasMiddleware;

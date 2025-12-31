@@ -43,9 +43,9 @@ class WizardController extends Controller
             ->orderBy('name', 'asc')
             ->get();
 
-        $business_type =  Enterprise::orderBy('name', 'asc')->get();
+        $business_type = Enterprise::orderBy('name', 'asc')->get();
 
-        $States =  State::where('id', 14)
+        $States = State::where('id', 14)
             ->first();
         // dd($application_form->name);
 
@@ -82,7 +82,7 @@ class WizardController extends Controller
                 'email' => 'required|email',
                 'business_name' => 'required|string|max:120',
                 'business_type' => 'required|string',
-                'state'    => ['required', 'string', 'max:100'],
+                'state' => ['required', 'string', 'max:100'],
                 'district' => ['required', 'string', 'max:120'],
                 'pan' => 'required|string|max:10|regex:/^[A-Z]{5}[0-9]{4}[A-Z]$/',
                 'business_pan' => 'nullable|string|max:10|regex:/^[A-Z]{5}[0-9]{4}[A-Z]$/',
@@ -96,9 +96,9 @@ class WizardController extends Controller
             ]);
 
         $payload = array_merge($data, [
-            'user_id'        => auth()->id(),
+            'user_id' => auth()->id(),
             'application_id' => $application->id,
-            'is_property_rented' => (bool)($data['is_property_rented'] ?? false),
+            'is_property_rented' => (bool) ($data['is_property_rented'] ?? false),
         ]);
 
         // handle files
@@ -135,7 +135,7 @@ class WizardController extends Controller
             'business_name' => 'required|string|max:120',
             // business_type is an id from enterprises table
             'business_type' => 'required|exists:enterprises,id',
-            'state'    => ['required', 'string', 'max:100'],
+            'state' => ['required', 'string', 'max:100'],
             'district' => ['required', 'string', 'max:120'],
             'pan' => ['required', 'string', 'max:10', 'regex:/^[A-Z]{5}[0-9]{4}[A-Z]$/'],
             'business_pan' => ['nullable', 'string', 'max:10', 'regex:/^[A-Z]{5}[0-9]{4}[A-Z]$/'],
@@ -250,18 +250,18 @@ class WizardController extends Controller
 
         // Server-side validation (aligned with client)
         $rules = [
-            'property_name'     => 'required|string|max:160',
+            'property_name' => 'required|string|max:160',
             // Accept coordinates string or URL => keep as string on server
-            'geo_link'          => 'nullable|string|max:255',
-            'address'           => 'required|string|max:1000',
+            'geo_link' => 'nullable|string|max:255',
+            'address' => 'required|string|max:1000',
             'address_proof_type' => ['required', 'string', 'in:Latest Electricity Bill,Water Bill,Other'],
-            'address_proof'     => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:2048',
-            'total_area_sqft'   => 'nullable|integer|min:0',
+            'address_proof' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:2048',
+            'total_area_sqft' => 'nullable|integer|min:0',
             'mahabooking_reg_no' => 'nullable|string|max:80',
-            'is_operational'    => 'required|boolean',
+            'is_operational' => 'required|boolean',
             'operational_since' => $isOperational ? 'nullable|integer|min:1900|max:2030' : 'nullable|integer',
             'guests_till_march' => $isOperational ? 'nullable|integer|min:0' : 'nullable|integer',
-            'district_id'       => 'required|exists:districts,id',
+            'district_id' => 'required|exists:districts,id',
         ];
 
         $data = $r->validate($rules);
@@ -269,11 +269,11 @@ class WizardController extends Controller
         DB::beginTransaction();
         try {
             $payload = [
-                'user_id'        => auth()->id(),
+                'user_id' => auth()->id(),
                 'application_id' => $application->id,
-                'property_name'  => $data['property_name'],
-                'geo_link'       => $data['geo_link'] ?? null,
-                'address'        => $data['address'],
+                'property_name' => $data['property_name'],
+                'geo_link' => $data['geo_link'] ?? null,
+                'address' => $data['address'],
                 'address_proof_type' => $data['address_proof_type'],
                 'total_area_sqft' => $data['total_area_sqft'] ?? null,
                 'mahabooking_reg_no' => $data['mahabooking_reg_no'] ?? null,
@@ -325,22 +325,22 @@ class WizardController extends Controller
 
 
         $data = $r->validate([
-            'property_name'     => 'required|string|max:160',
-            'geo_link'          => 'nullable|url|max:255',
-            'address'           => 'required|string|max:1000',
-            'address_proof_type'        => ['required', 'string', 'in:Latest Electricity Bill,Water Bill,Other'],
-            'address_proof'     => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:2048',
-            'total_area_sqft'   => 'nullable|integer|min:0',
+            'property_name' => 'required|string|max:160',
+            'geo_link' => 'nullable|url|max:255',
+            'address' => 'required|string|max:1000',
+            'address_proof_type' => ['required', 'string', 'in:Latest Electricity Bill,Water Bill,Other'],
+            'address_proof' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:2048',
+            'total_area_sqft' => 'nullable|integer|min:0',
             'mahabooking_reg_no' => 'nullable|string|max:80',
-            'is_operational'    => 'nullable|boolean',
+            'is_operational' => 'nullable|boolean',
             'operational_since' => 'nullable|date_format:Y',
             'guests_till_march' => 'nullable|integer|min:0',
         ]);
 
         $payload = array_merge($data, [
-            'user_id'        => auth()->id(),
+            'user_id' => auth()->id(),
             'application_id' => $application->id,
-            'is_operational' => (bool)($data['is_operational'] ?? false),
+            'is_operational' => (bool) ($data['is_operational'] ?? false),
         ]);
 
 
@@ -364,19 +364,20 @@ class WizardController extends Controller
     public function saveAccommodation(Application $application, Request $r)
     {
         $data = $r->validate([
-            'flats_count'     => 'required|integer|min:1',
-            'flat_types'      => ['sometimes', 'array'],
-            'flat_types.*'    => ['nullable', 'string', 'max:200'],
-            'has_dustbins'    => 'required|boolean',
+            'flats_count' => 'required|integer|min:1',
+            'flat_types' => ['sometimes', 'array'],
+            'flat_types.*' => ['nullable', 'string', 'max:200'],
+            'has_dustbins' => 'required|boolean',
             'attached_toilet' => 'required|boolean',
-            'road_access'     => 'required|boolean',
+            'road_access' => 'required|boolean',
             'food_on_request' => 'required|boolean',
-            'payment_upi'     => 'required|boolean',
+            'payment_upi' => 'required|boolean',
         ]);
 
         // collect & normalize types (flat_types[] includes quick box)
         $types = $r->input('flat_types', []);
-        if (!is_array($types)) $types = [$types];
+        if (!is_array($types))
+            $types = [$types];
 
         // trim, remove blanks, unique
         $types = array_values(array_unique(array_filter(array_map(function ($v) {
@@ -390,16 +391,16 @@ class WizardController extends Controller
         }
 
         $payload = [
-            'user_id'          => auth()->id(),
-            'application_id'   => $application->id,
-            'flats_count'      => (int) $data['flats_count'],
+            'user_id' => auth()->id(),
+            'application_id' => $application->id,
+            'flats_count' => (int) $data['flats_count'],
             // store as array (requires JSON column + $casts in model)
-            'flat_types'       => $types,
-            'has_dustbins'     => (bool) $data['has_dustbins'],
-            'attached_toilet'  => (bool) $data['attached_toilet'],
-            'road_access'      => (bool) $data['road_access'],
-            'food_on_request'  => (bool) $data['food_on_request'],
-            'payment_upi'      => (bool) $data['payment_upi'],
+            'flat_types' => $types,
+            'has_dustbins' => (bool) $data['has_dustbins'],
+            'attached_toilet' => (bool) $data['attached_toilet'],
+            'road_access' => (bool) $data['road_access'],
+            'food_on_request' => (bool) $data['food_on_request'],
+            'payment_upi' => (bool) $data['payment_upi'],
         ];
 
         DB::beginTransaction();
@@ -425,14 +426,14 @@ class WizardController extends Controller
     {
         dd($r->all());
         $data = $r->validate([
-            'flats_count'     => 'required|integer|min:1',
-            'flat_types'      => ['sometimes', 'array'],
-            'flat_types.*'    => ['nullable', 'string', 'max:200'],
-            'has_dustbins'    => 'required|boolean',
-            'attached_toilet'    => 'required|boolean',
-            'road_access'     => 'required|boolean',
+            'flats_count' => 'required|integer|min:1',
+            'flat_types' => ['sometimes', 'array'],
+            'flat_types.*' => ['nullable', 'string', 'max:200'],
+            'has_dustbins' => 'required|boolean',
+            'attached_toilet' => 'required|boolean',
+            'road_access' => 'required|boolean',
             'food_on_request' => 'required|boolean',
-            'payment_upi'     => 'required|boolean',
+            'payment_upi' => 'required|boolean',
         ]);
 
         $types = $r->input('flat_types', []);
@@ -451,16 +452,16 @@ class WizardController extends Controller
         }
 
         $payload = [
-            'user_id'          => auth()->id(),
-            'application_id'   => $application->id,
-            'flats_count'      => (int) $data['flats_count'],
-            'flat_types'      => $types,
+            'user_id' => auth()->id(),
+            'application_id' => $application->id,
+            'flats_count' => (int) $data['flats_count'],
+            'flat_types' => $types,
             // 'flat_types'       => $data['flat_types'] ? json_decode($data['flat_types'], true) : [],
-            'has_dustbins'     => (bool)($data['has_dustbins'] ?? false),
-            'attached_toilet'     => (bool)($data['has_dustbins'] ?? false),
-            'road_access'      => (bool)($data['road_access'] ?? false),
-            'food_on_request'  => (bool)($data['food_on_request'] ?? false),
-            'payment_upi'      => (bool)($data['payment_upi'] ?? false),
+            'has_dustbins' => (bool) ($data['has_dustbins'] ?? false),
+            'attached_toilet' => (bool) ($data['has_dustbins'] ?? false),
+            'road_access' => (bool) ($data['road_access'] ?? false),
+            'food_on_request' => (bool) ($data['food_on_request'] ?? false),
+            'payment_upi' => (bool) ($data['payment_upi'] ?? false),
         ];
 
         $application->accommodation()
@@ -476,9 +477,9 @@ class WizardController extends Controller
     {
         // dd($r->all());
         $data = $r->validate([
-            'facilities'   => ['required', 'array', 'min:1'],
+            'facilities' => ['required', 'array', 'min:1'],
             'facilities.*' => ['integer', 'exists:tourismfacilities,id'],
-            'gras_paid'    => ['required', 'in:0,1'],
+            'gras_paid' => ['required', 'in:0,1'],
         ]);
 
         $facilityIds = collect($data['facilities'])
@@ -494,9 +495,9 @@ class WizardController extends Controller
             ->updateOrCreate(
                 ['application_id' => $application->id],   // lookup
                 [
-                    'facilities'     => $facilityIds,     // JSON
-                    'gras_paid'      => (int) $data['gras_paid'],
-                    'user_id'        => auth()->id(),
+                    'facilities' => $facilityIds,     // JSON
+                    'gras_paid' => (int) $data['gras_paid'],
+                    'user_id' => auth()->id(),
                 ]
             );
 
@@ -514,12 +515,12 @@ class WizardController extends Controller
         // Laravel validation: size in KB (50 => 50KB, 200 => 200KB)
         $data = $r->validate([
             'applicant_signature' => ['nullable', 'file', 'mimes:jpg,jpeg,png', 'max:50'],
-            'applicant_image'     => ['nullable', 'file', 'mimes:jpg,jpeg,png', 'max:200'],
+            'applicant_image' => ['nullable', 'file', 'mimes:jpg,jpeg,png', 'max:200'],
         ], [
-            'applicant_signature.max'   => 'Signature must be less than 50KB',
-            'applicant_image.max'       => 'Photo must be less than 200KB',
+            'applicant_signature.max' => 'Signature must be less than 50KB',
+            'applicant_image.max' => 'Photo must be less than 200KB',
             'applicant_signature.mimes' => 'Signature must be JPG/JPEG/PNG format',
-            'applicant_image.mimes'     => 'Photo must be JPG/JPEG/PNG format',
+            'applicant_image.mimes' => 'Photo must be JPG/JPEG/PNG format',
         ]);
 
         DB::beginTransaction();
@@ -528,7 +529,7 @@ class WizardController extends Controller
             $existing = optional($application->photos);
 
             $payload = [
-                'user_id'        => auth()->id(),
+                'user_id' => auth()->id(),
                 'application_id' => $application->id,
             ];
 
@@ -538,16 +539,18 @@ class WizardController extends Controller
             if ($r->hasFile('applicant_signature')) {
 
                 $file = $r->file('applicant_signature');
-                $ext  = $file->getClientOriginalExtension();
+                $ext = $file->getClientOriginalExtension();
 
-                $dir  = "applications/{$application->id}/photos";
-                $filename = "signature_{$application->id}.".$ext;
+                $dir = "applications/{$application->id}/photos";
+                $filename = "signature_{$application->id}." . $ext;
 
                 $path = $file->storeAs($dir, $filename, 'public');
 
-                if ($existing && $existing->applicant_signature &&
+                if (
+                    $existing && $existing->applicant_signature &&
                     Storage::disk('public')->exists($existing->applicant_signature) &&
-                    $existing->applicant_signature !== $path) {
+                    $existing->applicant_signature !== $path
+                ) {
                     Storage::disk('public')->delete($existing->applicant_signature);
                 }
 
@@ -566,16 +569,18 @@ class WizardController extends Controller
             if ($r->hasFile('applicant_image')) {
 
                 $file = $r->file('applicant_image');
-                $ext  = $file->getClientOriginalExtension();
+                $ext = $file->getClientOriginalExtension();
 
-                $dir  = "applications/{$application->id}/photos";
-                $filename = "photo_{$application->id}.".$ext;
+                $dir = "applications/{$application->id}/photos";
+                $filename = "photo_{$application->id}." . $ext;
 
                 $path = $file->storeAs($dir, $filename, 'public');
 
-                if ($existing && $existing->applicant_image &&
+                if (
+                    $existing && $existing->applicant_image &&
                     Storage::disk('public')->exists($existing->applicant_image) &&
-                    $existing->applicant_image !== $path) {
+                    $existing->applicant_image !== $path
+                ) {
                     Storage::disk('public')->delete($existing->applicant_image);
                 }
 
@@ -608,7 +613,7 @@ class WizardController extends Controller
 
             DB::rollBack();
 
-            Log::error("PHOTO SAVE ERROR: ".$e->getMessage(), [
+            Log::error("PHOTO SAVE ERROR: " . $e->getMessage(), [
                 'app_id' => $application->id,
             ]);
 
@@ -640,7 +645,7 @@ class WizardController extends Controller
         ]);
 
         $payload = [
-            'user_id'        => auth()->id(),
+            'user_id' => auth()->id(),
             'application_id' => $application->id,
         ];
 
@@ -697,9 +702,16 @@ class WizardController extends Controller
 
         // server-side required docs check (run here so user can't proceed to step 7)
         $requiredCats = [
-            'aadhar','pan','business_reg','ownership',
-            'property_photos','character','society_noc',
-            'building_perm','gras_copy','undertaking'
+            'aadhar',
+            'pan',
+            'business_reg',
+            'ownership',
+            'property_photos',
+            'character',
+            'society_noc',
+            'building_perm',
+            'gras_copy',
+            'undertaking'
         ];
 
         // what categories we have in DB (unique)
@@ -736,7 +748,7 @@ class WizardController extends Controller
     /** Final Submit: lock and generate registration_id */
     public function submit(Application $application, Request $r)
     {
-        // dd($r->all());
+        // dd($r->all());A
         // completeness guard (server side). keep here as final safety net.
         foreach (['applicant', 'property', 'accommodation', 'facilities', 'photos', 'enclosures'] as $rel) {
             abort_if(!$application->$rel, 422, ucfirst($rel) . ' step incomplete.');
@@ -756,10 +768,10 @@ class WizardController extends Controller
         }
 
         $application->forceFill([
-            'status'        => 'submitted',
-            'is_apply'      => true,
+            'status' => 'submitted',
+            'is_apply' => true,
             'registration_id' => 'TV' . now()->format('Ymd') . strtoupper(Str::random(6)),
-            'submitted_at'  => now(),
+            'submitted_at' => now(),
         ])->save();
 
         return redirect()->route('applications.index')->with('success', 'Application submitted successfully.');
@@ -782,10 +794,10 @@ class WizardController extends Controller
         }
 
         $application->forceFill([
-            'status'        => 'submitted',
-            'is_apply'      => true,
+            'status' => 'submitted',
+            'is_apply' => true,
             'registration_id' => 'TV' . now()->format('Ymd') . strtoupper(Str::random(6)),
-            'submitted_at'  => now(),
+            'submitted_at' => now(),
         ])->save();
 
         return redirect()->route('applications.index')->with('success', 'Application submitted successfully.');

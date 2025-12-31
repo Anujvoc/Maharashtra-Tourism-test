@@ -21,8 +21,8 @@ class WorkflowService
     const STATUS_PENDING = 'Pending';
     const STATUS_APPROVED = 'Approved';
     const STATUS_REJECTED = 'Rejected';
-    const STATUS_RETURNED = 'Returned'; // Internal return (e.g. Dy -> Clerk)
     const STATUS_CLARIFICATION = 'Clarification'; // To User
+    const STATUS_RETURNED = 'Returned'; // Internal return (e.g. Dy -> Clerk)
     const STATUS_SITE_VISIT = 'Site Visit Report';
 
     public function getWorkflowStages($application)

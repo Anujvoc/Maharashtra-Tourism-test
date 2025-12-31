@@ -334,6 +334,16 @@
                                                                 $application = \App\Models\frontend\ApplicationForm\StampDutyApplication::find($applicationId);
                                                             @endphp
 
+                                                        @if (strtolower($workflowStatus ?? '') === 'certificate generated')
+
+                                                        {{-- ✅ Download Certificate button --}}
+                                                        <a href="{{ route('applications.certificate.download', ['type' => $typeSlug, 'id' => $app->id]) }}"
+                                                            class="btn btn-sm rounded-pill mb-1" target="_blank"
+                                                            style="background-color:#28a745; color:#fff; font-weight: 600;">
+                                                            <i class="bi bi-download me-1"></i> Download Certificate
+                                                        </a>
+                                                        @endif
+
                                                             @if ($applicationId)
                                                                 @if ($app->status === 'draft')
                                                                                                     {{-- Resume --}}
@@ -392,6 +402,15 @@
                                                                 }
                                                             @endphp
 
+                                                        @if (strtolower($workflowStatus ?? '') === 'certificate generated')
+
+                                                        {{-- ✅ Download Certificate button --}}
+                                                        <a href="{{ route('applications.certificate.download', ['type' => $typeSlug, 'id' => $app->id]) }}"
+                                                            class="btn btn-sm rounded-pill mb-1" target="_blank"
+                                                            style="background-color:#28a745; color:#fff; font-weight: 600;">
+                                                            <i class="bi bi-download me-1"></i> Download Certificate
+                                                        </a>
+                                                        @endif
                                                             @if ($applicationId)
                                                                 @if ($app->status === 'draft')
                                                                                                     {{-- Resume --}}

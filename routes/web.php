@@ -25,6 +25,22 @@ use App\Http\Controllers\frontend\ApplicationForm\EligibilityRegistrationControl
 use App\Http\Controllers\frontend\ApplicationForm\StampDutyWizardController;
 
 
+use Illuminate\Support\Facades\Mail;
+Route::get('/send-mail', function () {
+    try {
+        Mail::raw('Test Email', function ($message) {
+            $message->to('rajeevmahto275@gmail.com')
+                    ->subject('Test Mail');
+        });
+        dd('Mail sent successfully');
+        return 'Mail sent successfully';
+    } catch (\Exception $e) {
+        return $e->getMessage();
+    }
+});
+
+
+
 Route::get('/', function () {
     return view('frontend.index');
     return view('welcome');
@@ -68,10 +84,9 @@ Route::prefix('registration')->group(function () {
 });
 
 // routes/web.php
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'is_frontend'])->group(function () {
 
     // routes/web.php
-
     Route::get('/provisional-registration', function () {
         return view('frontend.create');
     })->name('provisional.registration.create');
@@ -109,17 +124,17 @@ Route::get('/frontend/applications/{slug}', [ApplicationFormController::class, '
 //     return view('dashboard');
 // })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'is_frontend'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'is_frontend'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 });
 
-Route::middleware(['auth'])->prefix('frontend')->as('frontend.')->group(function () {
+Route::middleware(['auth', 'is_frontend'])->prefix('frontend')->as('frontend.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
     Route::post('/logout', [DashboardController::class, 'logout'])->name('logout');
@@ -148,7 +163,7 @@ Route::middleware(['auth'])->prefix('frontend')->as('frontend.')->group(function
 
 });
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'is_frontend'])->group(function () {
     Route::get('/agriculture-registrations/create', [AgricultureRegistrationController::class, 'create'])
         ->name('agriculture-registrations.create');
 
@@ -171,7 +186,7 @@ Route::middleware(['auth'])->group(function () {
 
 
 
-Route::middleware('auth')->prefix('industrial')->name('industrial.')->group(function () {
+Route::middleware(['auth', 'is_frontend'])->prefix('industrial')->name('industrial.')->group(function () {
 
     // NEW: start wizard for a given application_form
     Route::post(
@@ -209,7 +224,7 @@ Route::middleware('auth')->prefix('industrial')->name('industrial.')->group(func
         '/wizard/{application}/final-submit',
         [IndustrialWizardController::class, 'finalSubmit']
     )->name('wizard.final-submit');
-    // new 
+    // new
     Route::get(
         '/hotel/report/{id}',
         [IndustrialWizardController::class, 'report']
@@ -218,7 +233,7 @@ Route::middleware('auth')->prefix('industrial')->name('industrial.')->group(func
 
 
 // routes/web.php
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'is_frontend'])->group(function () {
     // Provisional Registration Wizard
     Route::prefix('provisional/{application}')->group(function () {
         Route::get('/wizard/{step}', [ProvisionalRegistrationController::class, 'show'])
@@ -234,7 +249,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'is_frontend'])->group(function () {
     Route::get('/eligibility-registrations/create/{application_form}', [EligibilityRegistrationController::class, 'create'])
         ->name('eligibility-registrations.create');
 
@@ -245,7 +260,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('eligibility-registrations.show');
 });
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'is_frontend'])->group(function () {
 
     Route::prefix('stamp-duty')->name('stamp-duty.')->group(function () {
 
@@ -274,7 +289,7 @@ Route::middleware(['auth'])->group(function () {
 
 require_once base_path('routes/admin.php');
 // User Document Re-upload
-Route::post('/user/documents/{id}/update', [App\Http\Controllers\frontend\UserDocumentController::class, 'update'])->name('user.documents.update')->middleware('auth');
+Route::post('/user/documents/{id}/update', [App\Http\Controllers\frontend\UserDocumentController::class, 'update'])->name('user.documents.update')->middleware(['auth', 'is_frontend']);
 
 require __DIR__ . '/auth.php';
 

@@ -16,123 +16,167 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use Mews\Captcha\Facades\Captcha;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use App\Mail\SendOtpMail;
+use App\Services\SMSService;
 
 class RegistrationController extends Controller
 {
     public function sendOtp(Request $request)
     {
-        $data = $request->validate([
-            'type' => ['required', Rule::in(['email','phone','aadhar'])],
-            'value' => 'required|string'
+
+        $request->validate([
+            'email' => 'required|email' . ($request->type !== 'resend' ? '|unique:users,email' : ''),
+            'phone' => 'nullable|digits:10' . ($request->type !== 'resend' ? '|unique:users,phone' : ''),
         ]);
 
-        // simple rate limit
+        // 1. Rate Limiting (retained from original, as snippet didn't explicitly remove it but changed validation)
         if ($request->session()->has('last_otp_sent_at')) {
             $last = Carbon::parse($request->session()->get('last_otp_sent_at'));
-            if ($last->diffInSeconds(now()) < 10) {
-                return response()->json(['status' => 'error', 'message' => 'Wait before requesting another OTP'], 429);
+            if ($last->diffInSeconds(now()) < 30) {
+                return response()->json(['status' => 'error', 'message' => 'Please wait 30 seconds before resending OTP.'], 429);
             }
         }
 
-        $request->session()->put('otp_type', $data['type']);
-        $request->session()->put('otp_value', $data['value']);
-        $request->session()->put('otp_sent_at', now()->toDateTimeString());
-        $request->session()->put('last_otp_sent_at', now()->toDateTimeString());
+        // 2. Generate OTP
+        $otp = rand(1000, 9999);
+        $email = $request->email;
+        $phone = $request->phone;
 
-        // DEMO ONLY
-        $request->session()->put('otp_code', '1234');
+        // 3. Store OTP in Session
+        $request->session()->put('otp_code', (string) $otp);
+        $request->session()->put('otp_email', $email);
+        $request->session()->put('otp_phone', $phone);
+        $request->session()->put('otp_expires_at', now()->addMinutes(10)); // New expiry time
+        $request->session()->put('last_otp_sent_at', now()->toDateTimeString()); // Retained for rate limiting
 
-        if ($data['type'] === 'phone') {
-            $user = User::where('phone', $data['value'])->first();
-            if ($user) { $user->last_otp_sent_at = now(); $user->save(); }
-        } elseif ($data['type'] === 'email') {
-            $user = User::where('email', $data['value'])->first();
-            if ($user) { $user->last_otp_sent_at = now(); $user->save(); }
+        // 4. Send Email
+        $mailError = null;
+        try {
+            Mail::to($email)->send(new SendOtpMail($otp));
+        } catch (\Exception $e) {
+            Log::error("Mail Sending Failed: " . $e->getMessage());
+            $mailError = "Email could not be sent. ";
         }
+
+        // 5. Send SMS
+        $smsError = null;
+        if ($phone) {
+            try {
+                $smsService = new SMSService();
+                $smsResult = $smsService->sendSMS($phone, $otp);
+                if (!isset($smsResult['success']) || !$smsResult['success']) { // Check for success key and its value
+                    Log::error("SMS Sending Failed: " . ($smsResult['message'] ?? 'Unknown SMS error'));
+                    $smsError = "SMS gateway error. ";
+                }
+            } catch (\Exception $e) {
+                Log::error("SMS Exception: " . $e->getMessage());
+                $smsError = "SMS failed. ";
+            }
+        }
+
+        // 6. Handle response based on sending status
+        if ($mailError && $smsError) {
+            return response()->json(['status' => 'error', 'message' => 'Failed to send OTP to both Email and Phone. Please try again later.'], 500);
+        }
+
+        $msg = 'OTP sent successfully.';
+        if ($mailError) {
+            $msg = "OTP sent to Phone only. (Email failed)";
+        }
+        if ($smsError) {
+            $msg = "OTP sent to Email only. (SMS failed)";
+        }
+
+        // Reset verification flags
+        $request->session()->forget(['is_verified']);
 
         return response()->json([
             'status' => 'ok',
-            'message' => 'OTP sent (demo). Use 1234 to verify in this demo.',
+            'message' => $msg,
         ]);
     }
 
     public function verifyOtp(Request $request)
     {
         $data = $request->validate([
-            'type' => ['required', Rule::in(['email','phone','aadhar'])],
             'otp' => 'required|string',
-            'value' => 'required|string',
         ]);
 
-        $expected = $request->session()->get('otp_code', '1234');
+        $expected = $request->session()->get('otp_code');
 
-        if ($data['otp'] !== $expected) {
+        if (!$expected || $data['otp'] !== $expected) {
             return response()->json(['status' => 'error', 'message' => 'Invalid OTP.'], 422);
         }
 
-        $key = match ($data['type']) {
-            'email' => 'is_email_verified',
-            'phone' => 'is_phone_verified',
-            'aadhar' => 'is_aadhar_verified',
-        };
-
-        $request->session()->put($key, true);
-        $request->session()->put($key . '_at', now()->toDateTimeString());
+        // mark verified
+        $request->session()->put('is_verified', true);
 
         return response()->json([
             'status' => 'ok',
-            'message' => ucfirst($data['type']) . ' verified (demo).'
+            'message' => 'OTP Verified Successfully.'
         ]);
     }
 
     public function register(Request $request)
     {
         $payload = $request->validate([
-            'name' => 'required|string|max:255',
-            'username' => 'nullable|string|max:100|unique:users,username',
+            'name' => 'nullable|string|max:255', // handled as username in form
+            'username' => 'required|string|max:100|unique:users,username',
             'email' => 'required|email|unique:users,email',
-            'phone' => 'nullable|digits:10|unique:users,phone',
+            'phone' => 'required|digits:10|unique:users,phone',
             'password' => 'required|string|min:8|confirmed',
-            'aadhar' => 'nullable|digits:12|unique:users,aadhar',
-            'role' => ['nullable', Rule::in(['admin','vendor','user'])],
+            'aadhar' => 'nullable|digits:12|unique:users,aadhar', // Aadhar is now optional
         ]);
 
-        $isEmailVerified = (bool) $request->session()->get('is_email_verified', false);
-        $isPhoneVerified = (bool) $request->session()->get('is_phone_verified', false);
-        $isAadharVerified = (bool) $request->session()->get('is_aadhar_verified', false);
+        // Check if OTP was verified
+        if (!$request->session()->get('is_verified')) {
+            return response()->json(['status' => 'error', 'message' => 'Please verify OTP first.'], 422);
+        }
+
+        // Integrity check: make sure email/phone matches what was OTP verified
+        if (
+            $payload['email'] !== $request->session()->get('otp_email') ||
+            $payload['phone'] !== $request->session()->get('otp_phone')
+        ) {
+            return response()->json(['status' => 'error', 'message' => 'Email/Phone changed after verification. Please verify again.'], 422);
+        }
 
         $regId = $this->generateUniqueRegistrationId();
 
         $user = User::create([
-            'name' => $payload['name'],
-            'username' => $payload['username'] ?? null,
+            'name' => $payload['username'], // Using username as name if name not provided
+            'username' => $payload['username'],
             'registration_id' => $regId,
             'image' => null,
-            'phone' => $payload['phone'] ?? null,
+            'phone' => $payload['phone'],
             'email' => $payload['email'],
-            'role' => $payload['role'] ?? 'user',
+            'role' => 'user',
             'status' => 'active',
-            'email_verified_at' => $isEmailVerified ? now() : null,
+            'email_verified_at' => now(),
+            'phone_verified_at' => now(), // Both verified by single OTP
+            'is_email_verified' => true,
+            'is_phone_verified' => true,
+            'is_aadhar_verified' => false, // No OTP for Aadhar
             'password' => Hash::make($payload['password']),
-            'is_email_verified' => $isEmailVerified,
-            'is_phone_verified' => $isPhoneVerified,
-            'is_aadhar_verified' => $isAadharVerified,
-            'phone_verified_at' => $isPhoneVerified ? now() : null,
-            'aadhar_verified_at' => $isAadharVerified ? now() : null,
-            'aadhar' => $payload['aadhar'] ?? null,
+            'aadhar' => $payload['aadhar'],
         ]);
 
+        // Clear session
         $request->session()->forget([
-            'otp_code','otp_type','otp_value','otp_sent_at',
-            'is_email_verified','is_phone_verified','is_aadhar_verified',
+            'otp_code',
+            'otp_email',
+            'otp_phone',
+            'last_otp_sent_at',
+            'is_verified'
         ]);
 
-        // Return JSON; frontend redirects to /login
         return response()->json([
             'status' => 'ok',
             'message' => 'Registration completed',
             'redirect_url' => url('/login'),
-            'user' => $user
         ], 201);
     }
 

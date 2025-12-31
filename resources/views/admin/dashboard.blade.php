@@ -37,10 +37,6 @@
       </div>
 
       <div class="row g-3">
-
-
-
-
 				<div class="card mt-2">
 
 					<div class="card-body">

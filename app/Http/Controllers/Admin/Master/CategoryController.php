@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin\Master;
 use Illuminate\Validation\Rule;
 use App\Http\Controllers\Controller;
-use App\Models\Admin\master\Category;
+use App\Models\Admin\Master\Category;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;

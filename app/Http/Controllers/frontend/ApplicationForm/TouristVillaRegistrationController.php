@@ -21,7 +21,6 @@ class TouristVillaRegistrationController extends Controller
 
     public function create()
     {
-        // If you want to reuse your existing big Blade, return that view here
         return view('villa_registrations.create');
     }
 

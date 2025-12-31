@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Admin\Master;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Admin\Master\Enterprise;
-use App\Models\Admin\master\Undertaking;
-use App\Models\Admin\master\TermsAndCondition;
+use App\Models\Admin\Master\Undertaking;
+use App\Models\Admin\Master\TermsAndCondition;
 use App\Models\Admin\ApplicationForm;
 use Illuminate\Support\Str;
 
@@ -78,7 +78,7 @@ class UndertakingController extends Controller
     {
 
         // $TermsAndCondition = Undertaking::where('id',1)->first();
-    
+
         return view('admin.master.undertaking.create');
     }
 

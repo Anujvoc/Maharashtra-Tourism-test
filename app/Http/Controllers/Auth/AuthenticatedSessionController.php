@@ -16,7 +16,9 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(): View
     {
-        return view('auth.login');
+        return view('auth.login', [
+            'frontend_encryption_key' => env('FRONTEND_ENCRYPTION_KEY', 'default_secret_key_change_me'),
+        ]);
     }
 
     /**
@@ -39,16 +41,16 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        if($request->user()->status === 'inactive'){
+        if ($request->user()->status === 'inactive') {
             Auth::guard('web')->logout();
             $request->session()->regenerateToken();
             // toastr('account has been banned from website please connect with support!', 'error', 'Account Banned!');
             return redirect('/');
         }
 
-        if($request->user()->role === 'admin'){
+        if ($request->user()->role === 'admin') {
             return redirect()->intended('/admin/dashboard');
-        }elseif($request->user()->role === 'vendor'){
+        } elseif ($request->user()->role === 'vendor') {
             return redirect()->intended('/vendor/dashboard');
         }
 

@@ -15,10 +15,10 @@ use App\Models\frontend\ApplicationForm\IndustrialStep2;
 use App\Models\frontend\ApplicationForm\IndustrialStep3;
 use App\Models\frontend\ApplicationForm\IndustrialStep4;
 
-use App\Models\Admin\master\Accomodation\SafetyAndSecurity;
-use App\Models\Admin\master\Accomodation\AdditionalFeature;
-use App\Models\Admin\master\Accomodation\GeneralRequirement;
-use App\Models\Admin\master\Accomodation\GuestService;
+use App\Models\Admin\Master\Accomodation\SafetyAndSecurity;
+use App\Models\Admin\Master\Accomodation\AdditionalFeature;
+use App\Models\Admin\Master\Accomodation\GeneralRequirement;
+use App\Models\Admin\Master\Accomodation\GuestService;
 
 use App\Models\frontend\ApplicationForm\IndustrialRegistration;
 
@@ -48,8 +48,6 @@ class IndustrialWizardController extends Controller
         }
 
         $application_form = ApplicationForm::find($application->application_form_id);
-
-
         $Districts = District::where('state_id', 14)
             ->where('is_active', 1)
             ->orderBy('name', 'asc')

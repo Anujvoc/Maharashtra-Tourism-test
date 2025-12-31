@@ -13,9 +13,9 @@ use App\Http\Requests\frontend\ApplicationForm\AdventureApplicationRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Admin\Master\Enterprise;
-use App\Models\Admin\master\Caravan\CaravanAmenity;
-use App\Models\Admin\master\Caravan\CaravanOptionalFeature;
-use App\Models\Admin\master\Caravan\CaravanType;
+use App\Models\Admin\Master\Caravan\CaravanAmenity;
+use App\Models\Admin\Master\Caravan\CaravanOptionalFeature;
+use App\Models\Admin\Master\Caravan\CaravanType;
 use App\Models\Admin\Master\Category;
 use App\Models\frontend\ApplicationForm\AgricultureRegistration;
 use App\Models\frontend\ApplicationForm\WomenCenteredTourismRegistration;
@@ -113,7 +113,7 @@ class ApplicationFormController extends Controller
                     'is_apply'            => false,
                     'current_step'        => 1,
                 ]);
-                
+
             }
 
             return redirect()->route('industrial.wizard.show', [

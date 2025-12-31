@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin\Master;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Admin\Master\Enterprise;
-use App\Models\Admin\master\TermsAndCondition;
+use App\Models\Admin\Master\TermsAndCondition;
 use App\Models\Admin\ApplicationForm;
 use Illuminate\Support\Str;
 
