@@ -62,9 +62,9 @@
         </ul>
       </li> --}}
 
-
+{{--
       @can('view forms')
-      <li class="menu-label">Forms</li>
+        <li class="menu-label">Forms</li>
         <li>
           <a class="has-arrow" href="javascript:;">
             <div class="parent-icon"><i class="material-icons-outlined">toc</i>
@@ -72,7 +72,7 @@
             <div class="menu-title">Forms</div>
           </a>
           <ul>
-            {{-- This list item links to the index page, which also requires 'view forms' --}}
+
             <li>
               <a href="{{ route("admin.ApplicationForms.index") }}">
                 <i class="material-icons-outlined">arrow_right</i>All Forms
@@ -82,10 +82,9 @@
         </li>
       @endcan
 
-      {{-- Note: If you have a separate 'Create Forms' menu item, you would use @can('create forms') --}}
+      --}}
 
 
-      {{-- Workflow Management --}}
       @canany(['Clerk', 'Asst Director', 'Dy Director', 'Joint Director', 'Director'])
         <li class="menu-label">Workflow Management</li>
         <li>
@@ -95,14 +94,76 @@
             <div class="menu-title">Workflow</div>
           </a>
           <ul>
-            {{-- Link to all applications (since we haven't made specific role-based list pages yet, re-using All Forms
-            for now) --}}
-            <li><a href="{{ route('admin.ApplicationForms.index') }}"><i class="material-icons-outlined">arrow_right</i>My
-                Approvals</a>
+            {{-- Pending (Default) --}}
+            <li>
+              <a href="{{ route('admin.ApplicationForms.index', ['view_status' => 'pending']) }}">
+                <i class="material-icons-outlined">arrow_right</i>Pending Applications
+              </a>
             </li>
+
+            @if(auth()->user()->hasRole('Clerk'))
+              <li>
+                <a href="{{ route('admin.ApplicationForms.index', ['view_status' => 'clarification_list']) }}">
+                  <i class="material-icons-outlined">arrow_right</i>Clarification List
+                </a>
+              </li>
+            @endif
+
+            <li>
+                <a href="{{ route('admin.ApplicationForms.index', ['view_status' => 'returned']) }}">
+                  <i class="material-icons-outlined">arrow_right</i>Clarification / Returned
+                </a>
+              </li>
+
+
+            {{-- Approved --}}
+            <li>
+              <a href="{{ route('admin.ApplicationForms.index', ['view_status' => 'approved']) }}">
+                <i class="material-icons-outlined">arrow_right</i>Approved List
+              </a>
+            </li>
+
+            {{-- Clarification (Returned) --}}
+
+
+            {{-- Rejected --}}
+            <li>
+              <a href="{{ route('admin.ApplicationForms.index', ['view_status' => 'rejected']) }}">
+                <i class="material-icons-outlined">arrow_right</i>Rejected List
+              </a>
+            </li>
+
+            {{-- Certificate Upload (Asst Director) --}}
+            @if(auth()->user()->hasRole('Asst Director'))
+              <li>
+                <a href="{{ route('admin.ApplicationForms.index', ['view_status' => 'certificate_pending']) }}">
+                  <i class="material-icons-outlined">arrow_right</i>Upload Certificate
+                </a>
+              </li>
+            @endif
+
+            {{-- Site Visit Upload (Clerk) --}}
+            @if(auth()->user()->hasRole('Clerk'))
+              <li>
+                <a href="{{ route('admin.ApplicationForms.index', ['view_status' => 'site_visit_requested']) }}">
+                  <i class="material-icons-outlined">arrow_right</i>Site Visit Uploads
+                </a>
+              </li>
+            @endif
+
+            {{-- Site Visit Requests (Dy Director) --}}
+            @if(auth()->user()->hasRole('Dy Director'))
+              <li>
+                <a href="{{ route('admin.ApplicationForms.index', ['view_status' => 'site_visit_requested']) }}">
+                  <i class="material-icons-outlined">arrow_right</i>Site Visit Requests
+                </a>
+              </li>
+            @endif
           </ul>
         </li>
       @endcanany
+
+
 
 
       <li class="menu-label">Master Management</li>
@@ -164,26 +225,92 @@
                 class="material-icons-outlined">arrow_right</i>Caravan Amenity</a>
           </li>
 
-          <li>
+
+          @canany([
+    'view ProvisionalZone',
+    'create ProvisionalZone',
+    'view ProvisionalArea',
+    'create ProvisionalArea',
+    'view ProvisionalProjectType',
+    'create ProvisionalProjectType',
+    'create ProvisionalProjectCategory',
+    'view ProvisionalProjectCategory',
+])
+<li>
+    <a class="has-arrow" href="javascript:;">
+        <div class="parent-icon">
+            <i class="material-icons-outlined">view_agenda</i>
+        </div>
+        <div class="menu-title">Provisional</div>
+    </a>
+
+    <ul>
+        {{-- Classification Zone --}}
+        @canany(['view ProvisionalArea','view ProvisionalZone'])
+        <li>
             <a class="has-arrow" href="javascript:;">
-              <i class="material-icons-outlined">arrow_right</i>Roles
+                <i class="material-icons-outlined">arrow_right</i>
+                Classification Zone
             </a>
+
             <ul>
+                {{-- Area --}}
+                @can('view ProvisionalArea')
+                <li>
+                    <a href="{{ route('admin.master.area.index') }}">
+                        <i class="material-icons-outlined">arrow_right</i>
+                        Area
+                    </a>
+                </li>
+                @endcan
 
-              <li>
-                <a href="{{ route('admin.roles.index') }}">
-                  <i class="material-icons-outlined">arrow_right</i>All Roles
-                </a>
-              </li>
-
-              <li>
-                <a href="{{ route('admin.roles.create') }}">
-                  <i class="material-icons-outlined">arrow_right</i>Add Roles
-                </a>
-              </li>
-
+                {{-- Zone --}}
+                @can('view ProvisionalZone')
+                <li>
+                    <a href="{{ route('admin.master.zone.index') }}">
+                        <i class="material-icons-outlined">arrow_right</i>
+                        Zone
+                    </a>
+                </li>
+                @endcan
             </ul>
-          </li>
+        </li>
+        @endcanany
+
+        @canany(['view ProvisionalProjectType','view ProvisionalProjectCategory'])
+        <li>
+            <a class="has-arrow" href="javascript:;">
+                <i class="material-icons-outlined">arrow_right</i>
+               Project Category
+            </a>
+
+            <ul>
+                {{-- Area --}}
+                @can('view ProvisionalProjectType')
+                <li>
+                    <a href="{{ route('admin.master.projectType.index') }}">
+                        <i class="material-icons-outlined">arrow_right</i>
+                        Project Type
+                    </a>
+                </li>
+                @endcan
+
+                {{-- Zone --}}
+                @can('view ProvisionalProjectCategory')
+                <li>
+                    <a href="{{ route('admin.master.projectCategory.index') }}">
+                        <i class="material-icons-outlined">arrow_right</i>
+                        Project Category
+                    </a>
+                </li>
+                @endcan
+            </ul>
+        </li>
+        @endcanany
+    </ul>
+</li>
+@endcanany
+
 
         </ul>
       </li>
@@ -192,7 +319,11 @@
           <div class="parent-icon"><i class="material-icons-outlined">card_giftcard</i>
           </div>
           <div class="menu-title">Components</div>
-        </a>
+        </a> <li><a href="icons-boxicons.html"><i class="material-icons-outlined">arrow_right</i>Boxicons</a>
+              </li>
+              <li><a href="icons-feather-icons.html"><i class="material-icons-outlined">arrow_right</i>Feather
+                  Icons</a>
+              </li>
         <ul>
           <li><a href="component-alerts.html"><i class="material-icons-outlined">arrow_right</i>Alerts</a>
           </li>

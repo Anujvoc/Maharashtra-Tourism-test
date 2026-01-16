@@ -233,20 +233,40 @@ Route::middleware(['auth', 'is_frontend'])->prefix('industrial')->name('industri
 
 
 // routes/web.php
+// Route::middleware(['auth', 'is_frontend'])->group(function () {
+//     // Provisional Registration Wizard
+//     Route::prefix('provisional/{application}')->group(function () {
+//         Route::get('/wizard/{step}', [ProvisionalRegistrationController::class, 'show'])
+//             ->name('provisional.wizard.show');
+
+//         Route::post('/wizard/{step}/save', [ProvisionalRegistrationController::class, 'saveStep'])
+//             ->name('provisional.wizard.save');
+//     });
+
+//     // View submitted application
+//     Route::get('/applications/{application}/provisional', [ProvisionalRegistrationController::class, 'showApplication'])
+//         ->name('applications.provisional.show');
+// });
+
 Route::middleware(['auth', 'is_frontend'])->group(function () {
-    // Provisional Registration Wizard
-    Route::prefix('provisional/{application}')->group(function () {
-        Route::get('/wizard/{step}', [ProvisionalRegistrationController::class, 'show'])
-            ->name('provisional.wizard.show');
+    Route::prefix('provisional')->group(function () {
 
-        Route::post('/wizard/{step}/save', [ProvisionalRegistrationController::class, 'saveStep'])
-            ->name('provisional.wizard.save');
+        Route::get('/wizard/{step}',
+            [ProvisionalRegistrationController::class, 'show']
+        )->name('provisional.wizard.show');
+
+        Route::post('/wizard/{step}/save',
+            [ProvisionalRegistrationController::class, 'saveStep']
+        )->name('provisional.wizard.save');
     });
+    Route::get(
+        '/provisional/view/{application}',
+        [ProvisionalRegistrationController::class, 'showApplication']
+    )->name('applications.provisional.show');
 
-    // View submitted application
-    Route::get('/applications/{application}/provisional', [ProvisionalRegistrationController::class, 'showApplication'])
-        ->name('applications.provisional.show');
 });
+
+
 
 
 Route::middleware(['auth', 'is_frontend'])->group(function () {

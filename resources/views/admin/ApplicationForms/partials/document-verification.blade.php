@@ -35,7 +35,8 @@
                                 <td>
                                     <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank"
                                         class="btn btn-sm btn-info">
-                                        <i class="bx bx-show"></i> View
+                                        {{-- <i class="bx bx-show"></i> View --}}
+                                        <i class="bx bx-show"></i>
                                     </a>
                                 </td>
                                 <td>
@@ -55,10 +56,12 @@
                                 <td>
                                     @if($canVerify && ($myStatus === 'Pending' || $isReuploaded))
                                         <button class="btn btn-sm btn-success btn-approve" data-id="{{ $doc->id }}" title="Approve">
-                                            <i class="bi bi-check-lg"></i>
+                                            {{-- <i class="bi bi-check-lg"></i> --}}
+                                            Approve
                                         </button>
                                         <button class="btn btn-sm btn-danger btn-reject" data-id="{{ $doc->id }}" title="Reject">
-                                            <i class="bi bi-x-lg"></i>
+                                            {{-- <i class="bi bi-x-lg"></i> --}}
+                                             Reject
                                         </button>
                                     @else
                                         @if($myStatus === 'Approved')

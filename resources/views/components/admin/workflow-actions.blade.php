@@ -9,14 +9,14 @@
             <span class="font-medium">Status:</span>
             <span
                 class="px-3 py-1 rounded-full text-sm
-                {{ $application->workflow_status == 'Approved' ? 'bg-green-100 text-green-800' :
+                {{ ($application->workflow_status == 'Approved' || $application->workflow_status == 'Certificate Issued') ? 'bg-green-100 text-green-800' :
     ($application->workflow_status == 'Rejected' ? 'bg-red-100 text-red-800' :
         ($application->workflow_status == 'Certificate Generated' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800')) }}">
                 {{ $application->workflow_status }}
             </span>
         </div>
 
-        @if($application->workflow_status === 'Certificate Generated')
+        @if($application->workflow_status === 'Certificate Issued')
 
             {{-- Certificate Generated View --}}
             <div class="bg-light border border-success p-4 rounded text-center">
@@ -36,6 +36,28 @@
                 </div>
             </div>
 
+        @elseif($application->workflow_status === 'Certificate Pending' && auth()->user()->hasRole('Asst Director'))
+
+            {{-- Certificate Upload for Asst Director --}}
+             <form action="{{ route('admin.workflow.upload-certificate', ['type' => $type, 'id' => $application->id]) }}"
+                method="POST" enctype="multipart/form-data" class="border p-3 rounded bg-light border-primary">
+                @csrf
+                <div class="text-center mb-3">
+                    <i class="bi bi-file-earmark-arrow-up text-primary" style="font-size: 2.5rem;"></i>
+                    <h5 class="mt-2 text-primary">Upload Final Certificate</h5>
+                    <p class="text-muted small">Director has approved. Please upload the specific certificate.</p>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Certificate PDF <span class="text-danger">*</span></label>
+                    <input type="file" name="certificate_file" class="form-control" accept="application/pdf" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-upload"></i> Upload & Issue Certificate
+                </button>
+            </form>
+
         @elseif(auth()->user()->hasRole($application->current_stage))
 
             <div class="d-flex flex-column gap-3">
@@ -51,7 +73,7 @@
                 @endphp
 
                 <!-- Approve Action (Standard) -->
-                <form id="approve-form"
+                 <form id="approve-form"
                     action="{{ route('admin.workflow.approve', ['type' => $type, 'id' => $application->id]) }}"
                     method="POST" class="border p-3 rounded bg-light">
                     @csrf
@@ -161,32 +183,133 @@
                     }
                 </script>
 
+                <!-- Reject Application (Asst Director, Dy Director, Joint Director, Director) -->
+                {{-- Clerk cannot reject the full form --}}
+                @if(in_array($application->current_stage, ['Asst Director', 'Dy Director', 'Joint Director', 'Director']))
+                    <button type="button" class="btn btn-danger w-100 mb-0" data-bs-toggle="modal" data-bs-target="#rejectAppModal">
+                        Reject Application (Full)
+                    </button>
+
+                    <!-- Reject Modal -->
+                    <div class="modal fade" id="rejectAppModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <form action="{{ route('admin.workflow.reject', ['type' => $type, 'id' => $application->id]) }}" method="POST">
+                                @csrf
+                                <div class="modal-content">
+                                    <div class="modal-header bg-danger text-white">
+                                        <h5 class="modal-title">Reject Application Permanently</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p class="text-danger fw-bold">Warning: This will mark the application as Rejected and stop the workflow.</p>
+                                        <div class="mb-3">
+                                            <label class="form-label">Rejection Remark <span class="text-danger">*</span></label>
+                                            <textarea name="remark" class="form-control" rows="3" required placeholder="Reason for rejection..."></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-danger">Confirm Rejection</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                @endif
+
                 <!-- Return Internal Action (Admin to Admin) -->
-                @if($application->current_stage !== 'Clerk')
+                @php
+                    $returnLabel = "Return to Previous Stage";
+                    $showInternalReturn = false;
+                    // Logic: Joint/Dy -> Asst, Asst -> Clerk
+                    if($application->current_stage === 'Joint Director') {
+                        $returnLabel = "Return to Asst Director";
+                        $showInternalReturn = true;
+                    } elseif ($application->current_stage === 'Dy Director') {
+                        $returnLabel = "Return to Asst Director";
+                        $showInternalReturn = true;
+                    } elseif ($application->current_stage === 'Asst Director') {
+                        $returnLabel = "Return to Clerk (Clarification)";
+                        $showInternalReturn = true;
+                    }
+                @endphp
+
+                @if($showInternalReturn)
                     <form action="{{ route('admin.workflow.return', ['type' => $type, 'id' => $application->id]) }}"
                         method="POST" class="border p-3 rounded bg-light">
                         @csrf
-                        <h5 class="mb-2 text-warning">Return to Previous Stage</h5>
-                        <textarea name="remark" rows="3" class="form-control mb-2 w-100" placeholder="Reason for return..."
+                        <h5 class="mb-2 text-warning">{{ $returnLabel }}</h5>
+                        <p class="text-muted small">This will send the application back for clarification/correction.</p>
+                        <textarea name="remark" rows="3" class="form-control mb-2 w-100" placeholder="Reason for return/correction..."
                             required></textarea>
-                        <button type="submit" class="btn btn-warning text-white w-100">Return to
-                            Previous</button>
+                        <button type="submit" class="btn btn-warning text-white w-100">
+                            {{ $returnLabel }}
+                        </button>
                     </form>
                 @endif
 
-                <!-- Return/Clarify to User Action -->
-                <form action="{{ route('admin.workflow.clarify', ['type' => $type, 'id' => $application->id]) }}"
-                    method="POST" class="border p-3 rounded bg-light">
-                    @csrf
-                    <h5 class="mb-2 text-primary">Request Clarification (To User)</h5>
-                    <textarea name="remark" rows="3" class="form-control mb-2 w-100" placeholder="Instructions to user..."
-                        required></textarea>
-                    <button type="submit" class="btn btn-primary w-100">Send to
-                        User</button>
-                </form>
+                <!-- Return/Clarify to User Action (CLERK ONLY) -->
+                @if(auth()->user()->hasRole('Clerk'))
+                    <form action="{{ route('admin.workflow.clarify', ['type' => $type, 'id' => $application->id]) }}"
+                        method="POST" class="border p-3 rounded bg-light">
+                        @csrf
+                        <h5 class="mb-2 text-primary">Request Clarification (To User)</h5>
+                        <p class="text-muted small">Send back to user for document re-upload or correction.</p>
+                        <textarea name="remark" rows="3" class="form-control mb-2 w-100" placeholder="Instructions to user..."
+                            required></textarea>
+                        <button type="submit" class="btn btn-primary w-100">Send to User</button>
+                    </form>
+                @endif
+                
+                <!-- Site Visit Request (Only Dy Director) - If report NOT present -->
+                 @if($application->current_stage === 'Dy Director' && !$hasSiteReport && $application->workflow_status !== 'Site Visit Requested')
+                    <form action="{{ route('admin.workflow.request-visit', ['type' => $type, 'id' => $application->id]) }}"
+                        method="POST" class="border p-3 rounded bg-light border-info mb-3">
+                        @csrf
+                        <h5 class="mb-2 text-info">Request Site Visit Report</h5>
+                        <p class="text-muted small">Notify Clerk to upload the Site Visit Report.</p>
+                        <button type="submit" class="btn btn-info text-white w-100">
+                            Notify Clerk
+                        </button>
+                    </form>
+                @endif
 
-                <!-- Site Visit Report (Only Dy Director) -->
-                <!-- Site Visit Report (Only Dy Director) -->
+                <!-- Site Visit Report Upload (Clerk - when Requested) -->
+                 @if($application->workflow_status === 'Site Visit Requested' && auth()->user()->hasRole('Clerk'))
+                    <form action="{{ route('admin.workflow.site-report', ['type' => $type, 'id' => $application->id]) }}"
+                        method="POST" enctype="multipart/form-data" class="border p-3 rounded bg-light mb-3">
+                        @csrf
+                        <h5 class="mb-2 text-primary">Upload Site Visit Report (Requested)</h5>
+                        <div class="mb-3">
+                            <label class="form-label text-primary fw-bold">Site Visit Report <span class="text-danger">*</span></label>
+                            <input type="file" name="site_visit_report" class="form-control" accept="application/pdf" required>
+                        </div>
+                         {{-- Taluka Report for Agriculture --}}
+                        @if($application instanceof \App\Models\frontend\ApplicationForm\AgricultureRegistration)
+                            <div class="mb-3">
+                                <label class="form-label text-primary fw-bold">Taluka Agri Officer Inspection Report <span class="text-danger">*</span></label>
+                                <input type="file" name="taluka_report_file" class="form-control" accept="application/pdf" required>
+                            </div>
+                        @endif
+                        <div class="mb-2">
+                            <label class="form-label text-primary fw-bold">Remark <span class="text-danger">*</span></label>
+                             <textarea name="remark" rows="2" class="form-control" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Submit Report to Dy Director</button>
+                    </form>
+                @endif
+
+                <!-- Site Visit Report Submit (Dy Director logic - usually hidden now as they Request it, but user prompt said "Dy Director controls/rejects it") -->
+                <!-- Assuming Dy Director approves/rejects via the document verification or main approval flow once uploaded. -->
+
+                <!-- Helper for Dy Director to see uploaded report logic is in document-verification or global report view. -->
+                
+                <!-- Old Site Visit Logic (Preserved if needed, but modified condition) -->
+                @if($application->current_stage === 'Dy Director' && $hasSiteReport)
+                    <!-- If report exists, Dy Director sees Approve/Return buttons above. -->
+                @endif
+
+                @if(false) <!-- Disable old block to avoid confusion, using new request flow -->
                 @if($application->current_stage === 'Dy Director')
                     <form action="{{ route('admin.workflow.site-report', ['type' => $type, 'id' => $application->id]) }}"
                         method="POST" enctype="multipart/form-data" class="border p-3 rounded bg-light mb-3">
@@ -237,6 +360,7 @@
                             }
                         }
                     </script>
+                @endif
                 @endif
             </div>
 

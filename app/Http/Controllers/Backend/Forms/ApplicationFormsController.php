@@ -24,76 +24,130 @@ use App\Models\frontend\ApplicationForm\ProvisionalRegistration;
 use App\Models\frontend\CaravanRegistration\CaravanRegistration;
 use App\Models\frontend\ApplicationForm\StampDutyApplication;
 use App\Models\frontend\ApplicationForm\IndustrialRegistration;
+
 class ApplicationFormsController extends Controller
 {
-
-
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
         $role = $user->getRoleNames()->first();
+        $viewStatus = $request->input('view_status', 'pending'); // Default to pending if not set
+
         $models = [
             Application::class,
-            AdventureApplication::class,
-            AgricultureRegistration::class,
-            WomenCenteredTourismRegistration::class,
-            EligibilityRegistration::class,
-            ProvisionalRegistration::class,
-            CaravanRegistration::class,
-            StampDutyApplication::class,
-            IndustrialRegistration::class,
+            \App\Models\frontend\ApplicationForm\AdventureApplication::class,
+            \App\Models\frontend\ApplicationForm\AgricultureRegistration::class,
+            \App\Models\frontend\ApplicationForm\WomenCenteredTourismRegistration::class,
+            \App\Models\frontend\ApplicationForm\EligibilityRegistration::class,
+            \App\Models\frontend\ApplicationForm\ProvisionalRegistration::class,
+            \App\Models\frontend\CaravanRegistration\CaravanRegistration::class,
+            \App\Models\frontend\ApplicationForm\StampDutyApplication::class,
+            \App\Models\frontend\ApplicationForm\IndustrialRegistration::class,
         ];
 
         $registration_data = collect();
 
         foreach ($models as $modelClass) {
-
             $query = $modelClass::query();
 
-            if (!$user->hasRole('Super Admin')) {
-                $query->where('current_stage', $role)
-                    ->whereNotIn('workflow_status', ['Certificate Generated']);
+            $query->where('is_apply', true);
+            // --- Status Filtering Logic ---
+            if ($user->hasRole('Super Admin')) {
+                if ($viewStatus == 'rejected') {
+                    $query->where('workflow_status', 'Rejected');
+                } elseif ($viewStatus == 'approved') {
+                    $query->where('status', 'approved');
+                }
+            } else {
+                // Role Based Filtering
+                if ($viewStatus == 'pending') {
+                    $query->where('current_stage', $role)
+                        ->whereNotIn('workflow_status', ['Rejected', 'Returned', 'Clarification', 'Certificate Generated', 'Certificate Issued', 'Site Visit Requested', 'Certificate Pending']);
+                } elseif ($viewStatus == 'returned') {
+                    $query->where('current_stage', $role)->where('workflow_status', 'Returned');
+                } elseif ($viewStatus == 'clarification_list') {
+                    // if ($role == 'Clerk') {
+                    //     $query->where('current_stage', $role)->where('workflow_status', 'Returned');
+                    // }
+                    if ($role == 'Clerk') {
+                        // dd(123);
+                        $query->where('current_stage', $role)->where('workflow_status', 'Clarification');
+                    }
+                } elseif ($viewStatus == 'rejected') {
+                    $query->where('workflow_status', 'Rejected');
+                } elseif ($viewStatus == 'approved') {
+                    $query->where('status', 'approved');
+                } elseif ($viewStatus == 'certificate_pending') {
+                    if ($role == 'Asst Director') {
+                        $query->where('workflow_status', 'Certificate Pending');
+                    }
+                } elseif ($viewStatus == 'site_visit_requested') {
+                    $query->where('workflow_status', 'Site Visit Requested');
+                }
             }
 
-            $rows = $query->with('verificationDocuments')->select(
-                'id',
-                'application_form_id',
-                'user_id',
-                'registration_id',
-                'status',
-                'workflow_status',
-                'submitted_at',
-                'current_stage'
-            )->get();
+            // Eager load User and Verification Documents
+            $rows = $query->with(['user', 'verificationDocuments'])->get();
 
             foreach ($rows as $r) {
-                // Check for newly uploaded documents
-                $hasNewUploads = false;
-                if ($r->verificationDocuments) {
-                    $hasNewUploads = $r->verificationDocuments->contains(function ($doc) {
-                        return isset($doc->role_approvals['_meta']['is_reuploaded']) && $doc->role_approvals['_meta']['is_reuploaded'];
-                    });
-                }
+                // Determine Model Name/Label
+                $modelName = class_basename($modelClass);
+                $readableName = preg_replace('/(?<!\ )[A-Z]/', ' $0', $modelName);
 
-                $registration_data->push((object) [
+                $registration_data->push([
                     'id' => $r->id,
-                    'application_form_id' => $r->application_form_id,
-                    'registration_id' => $r->registration_id,
-                    'user_id' => $r->user_id,
+                    'application_no' => $r->registration_id ?? 'N/A',
+                    'application_name' => $readableName,
+                    'user_name' => $r->user->name ?? 'N/A',
+                    'user_email' => $r->user->email ?? 'N/A',
+                    'submitted_date' => $r->submitted_at ? \Carbon\Carbon::parse($r->submitted_at)->format('d-m-Y') : 'N/A',
                     'status' => $r->workflow_status ?? $r->status,
-                    'submitted_at' => $r->submitted_at ? Carbon::parse($r->submitted_at) : null,
-                    'model' => $modelClass,
-                    'original' => $r,
-                    'has_new_uploads' => $hasNewUploads,
+                    'workflow_stage' => $r->current_stage,
+                    'view_url' => route('admin.ApplicationForms.model.show', ['model' => strtolower($modelName), 'id' => $r->id]),
+                    'model_slug' => strtolower($modelName), // For verification
                 ]);
             }
         }
 
-        $registration_data = $registration_data
-            ->sortByDesc(fn($item) => $item->submitted_at)
-            ->values();
+        // Sorting
+        $registration_data = $registration_data->sortByDesc('submitted_date')->values();
 
-        return view('admin.ApplicationForms.index', compact('registration_data'));
+        // Determine Page Title
+        $pageTitle = match ($viewStatus) {
+            'pending' => 'Pending Applications',
+            'approved' => 'Approved Applications',
+            'rejected' => 'Rejected Applications',
+            'returned' => 'Returned / Clarification Applications',
+            'clarification_list' => 'Clarification List',
+            'site_visit_requested' => 'Site Visit Requests',
+            'certificate_pending' => 'Certificate Pending',
+            default => 'All Applications',
+        };
+
+        if (!$request->ajax()) {
+            return view('admin.ApplicationForms.submissions_index', compact('registration_data', 'viewStatus', 'pageTitle'));
+        }
+
+        return \Yajra\DataTables\Facades\DataTables::of($registration_data)
+            ->addIndexColumn()
+            ->addColumn('status_badge', function ($row) {
+                $status = $row['status'];
+                $color = 'secondary';
+                if ($status == 'Approved')
+                    $color = 'success';
+                if ($status == 'Rejected')
+                    $color = 'danger';
+                if ($status == 'Returned')
+                    $color = 'warning';
+                if ($status == 'Pending')
+                    $color = 'warning';
+                return '<span class="badge bg-' . $color . '">' . $status . '</span>';
+            })
+            ->addColumn('action', function ($row) {
+                return '<a href="' . $row['view_url'] . '" class="btn btn-sm btn-primary"><i class="bi bi-eye"></i> View</a>';
+            })
+            ->rawColumns(['status_badge', 'action'])
+            ->make(true);
     }
 
 
@@ -247,7 +301,7 @@ class ApplicationFormsController extends Controller
             // C. Fallback: Legacy Column Sync (only if no new system docs exist at all, to avoid duplication)
             // Note: We might want to keep this for legacy apps, but for now, if the Model has traits, we rely on them.
             if ($application->verificationDocuments()->count() === 0) {
-                // Do we still need to check legacy columns? 
+                // Do we still need to check legacy columns?
                 // If the model DOES NOT have HasDocuments/getDynamicDocuments, we can't do anything here anyway with the new system.
                 // So we assume the new system is the source of truth if the trait exists.
             }

@@ -156,12 +156,12 @@
                                 <div class="col-md-6 mt-2">
                                     <div class="form-group mb-3">
                                         <label for="region_id" class="form-label required">
-                                            <i class="bi bi-map form-icon"></i> Select Region
+                                            <i class="bi bi-map form-icon"></i> Select Division
                                         </label>
                                         <select id="region_id" name="region_id"
                                                 class="form-control @error('region_id') is-invalid @enderror"
                                                 onchange="get_Region_District(this.value)">
-                                            <option value="" selected disabled>Select Region</option>
+                                            <option value="" selected disabled>Select Division</option>
                                             @foreach($regions as $r)
                                                 <option value="{{ $r->id }}" {{ old('region_id') == $r->id ? 'selected' : '' }}>
                                                     {{ $r->name }}

@@ -38,6 +38,8 @@ class EligibilityRegistration extends Model
         'application_form_id',
         'region_id',
         'district_id',
+        'current_stage',
+        'workflow_status',
     ];
 
     protected $casts = [

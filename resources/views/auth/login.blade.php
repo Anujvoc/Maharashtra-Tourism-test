@@ -128,9 +128,7 @@
         <!-- Captcha -->
         <div class="mb-6">
             <label for="captcha" class="block text-sm font-medium mb-1">Security Code</label>
-
             <div class="flex flex-col gap-3">
-                <!-- Captcha Image & Refresh -->
                 <div class="relative flex items-center justify-between bg-white/20 rounded-lg overflow-hidden border border-white/30 p-1 w-full">
                     <span id="captcha-img" class="flex items-center h-12">
                         {!! captcha_img('flat') !!}
@@ -141,8 +139,6 @@
                         <i class="fas fa-sync-alt"></i>
                     </button>
                 </div>
-
-                <!-- Input -->
                 <input id="captcha" name="captcha" type="text" required
                     class="w-full px-4 py-3 bg-white/20 border border-white/30 text-white placeholder-gray-200 rounded-lg input-focus focus:outline-none focus:border-orange-400 transition"
                     placeholder="Enter security code">
@@ -154,7 +150,6 @@
             @enderror
         </div>
 
-        <!-- Remember + Forgot -->
         <div class="flex items-center justify-between mb-6">
             <label class="flex items-center">
                 <input id="remember_me" type="checkbox" name="remember"

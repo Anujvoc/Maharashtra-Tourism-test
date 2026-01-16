@@ -22,32 +22,8 @@
             </div>
 
             <div class="row mb-4">
-                {{-- Col 1: Document Verification --}}
-                <div class="col-lg-4">
-                    @include('admin.ApplicationForms.partials.document-verification', ['application' => $application])
-                </div>
-
-                {{-- Col 2: Workflow Actions --}}
-                <div class="col-lg-4">
-                    <div class="card">
-                        <div class="card-header bg-primary text-white">
-                            <h6 class="mb-0 text-white">Workflow Actions</h6>
-                        </div>
-                        <div class="card-body">
-                            <x-admin.workflow-actions :application="$application" :type="$type" />
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Col 3: Workflow History --}}
-                <div class="col-lg-4">
-                    @include('admin.ApplicationForms.partials.workflow-history', ['application' => $application])
-                </div>
-            </div>
-
-            <div class="row">
                 {{-- Row 2: Application Report (Full Width) --}}
-                <div class="col-12">
+                <div class="col-md-7">
                     <div class="card">
                         <div class="card-body p-0">
                             <div class="ratio ratio-1x1" style="min-height: 800px;">
@@ -58,7 +34,41 @@
                         </div>
                     </div>
                 </div>
+
+
+                <div class="col-md-5">
+                    @include('admin.ApplicationForms.partials.document-verification', ['application' => $application])
+
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h6 class="mb-0 text-white">Workflow Actions</h6>
+                        </div>
+                        <div class="card-body">
+                            <x-admin.workflow-actions :application="$application" :type="$type" />
+                        </div>
+                    </div>
+                </div>
+
+
             </div>
+
+            <div class="row mb-4">
+
+                {{-- Col 1: Document Verification --}}
+
+
+                {{-- Col 2: Workflow Actions --}}
+                <div class="col-md-12">
+
+                </div>
+
+                {{-- Col 3: Workflow History --}}
+                <div class="col-md-12">
+                    @include('admin.ApplicationForms.partials.workflow-history', ['application' => $application])
+                </div>
+            </div>
+
+
         </div>
     </main>
 @endsection

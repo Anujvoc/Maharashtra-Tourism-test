@@ -53,10 +53,11 @@
 
         <div class="card-body">
             <form id="stepForm"
-                  action="{{ route('provisional.wizard.save', [$application, $step]) }}
-                  "
-                  method="POST" novalidate>
-                @csrf
+                 action="{{ route('provisional.wizard.save', $step) }}"
+            method="POST"
+            novalidate>
+            @csrf
+
 
                 <div class="row g-3">
                     <!-- 1. Applicant Name -->
@@ -100,7 +101,7 @@
                                 id="businessType"
                                 name="enterprise_type"
                                 required>
-                          <option value="" disabled {{ old('enterprise_type',$application->business_type) ? '' : 'selected' }}>Select Business Type</option>
+                          <option value="" disabled {{ old('enterprise_type',$registration->business_type) ? '' : 'selected' }}>Select Business Type</option>
 
                           @foreach ($applicantTypes as $bt)
                             <option value="{{ $bt->id }}"
@@ -137,10 +138,10 @@
                         <div class="col-md-6">
                             <div class="form-group mb-3">
                                 <label for="region_id" class="form-label required">
-                                    <i class="bi bi-map form-icon"></i> Select Region
+                                    <i class="bi bi-map form-icon"></i> Select Division
                                 </label>
                                 <select id="region_id" name="region_id" class="form-control {{ $errors->has('region_id') ? 'is-invalid' : '' }}"  onchange="get_Region_District(this.value)">
-                                    <option value="">Select Region</option>
+                                    <option value="">Select Division</option>
                                     @foreach($regions as $r)
                                         <option value="{{ $r->id }}" {{ old('region_id', $registration->region_id ?? '') == $r->id ? 'selected' : '' }}>
                                             {{ $r->name }}
@@ -197,12 +198,19 @@
                             <i class="bi bi-arrow-left"></i> Previous
                         </a>
                     @else
-                        <a href="{{ route('applications.index') }}" class="btn btn-secondary">
+                        <a href="{{ route('applications.index') }}" class="btn btn-primary">
                             <i class="bi bi-arrow-left"></i> Back to Applications
                         </a>
                     @endif
 
-                    <button type="submit" class="btn btn-primary">
+
+                    <button type="submit" class="btn btn-primary1" style="background:#ff6600;
+                    color:#fff;
+                    font-weight:700;
+                    display:flex;
+                    align-items:center;
+                    "
+                    >
                         Save & Continue <i class="bi bi-arrow-right"></i>
                     </button>
                 </div>

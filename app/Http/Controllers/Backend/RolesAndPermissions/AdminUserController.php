@@ -131,8 +131,6 @@ class AdminUserController extends Controller  implements HasMiddleware
     public function store(Request $request)
     {
         try {
-
-
             $rules = [
                 'name'       => 'required|string|max:255',
                 'email'      => 'required|email:rfc,dns|unique:users,email',
@@ -141,8 +139,6 @@ class AdminUserController extends Controller  implements HasMiddleware
                 'roles'      => 'required|exists:roles,id',
                 'is_visible' => 'required|in:active,inactive',
             ];
-
-    
             if ($request->roles == 11) {
                 $rules['region_id']   = 'required|exists:divisions,id';
                 $rules['district_id'] = 'required|exists:districts,id';
@@ -150,9 +146,6 @@ class AdminUserController extends Controller  implements HasMiddleware
 
             $validated = $request->validate($rules);
 
-            /* -----------------------------
-             | 3️⃣ CREATE USER
-             ----------------------------- */
             $user = new User();
             $user->name     = $validated['name'];
             $user->email    = $validated['email'];
@@ -162,12 +155,10 @@ class AdminUserController extends Controller  implements HasMiddleware
             $user->status   = $validated['is_visible'];
             $user->save();
 
-            /* -----------------------------
-             | 4️⃣ ASSIGN ROLE (SPATIE)
-             ----------------------------- */
             $role = Role::where('id', $validated['roles'])
                 ->where('guard_name', 'web')
                 ->first();
+
 
             if (!$role) {
                 return back()
@@ -175,11 +166,9 @@ class AdminUserController extends Controller  implements HasMiddleware
                     ->withErrors(['roles' => 'Selected role is not valid.']);
             }
 
+
             $user->assignRole($role);
 
-            /* -----------------------------
-             | 5️⃣ SAVE REGION (ONLY DY DIRECTOR)
-             ----------------------------- */
             if ($validated['roles'] == 11) {
 
                 UserRegion::create([
@@ -189,9 +178,7 @@ class AdminUserController extends Controller  implements HasMiddleware
                 ]);
             }
 
-            /* -----------------------------
-             | 6️⃣ SUCCESS
-             ----------------------------- */
+
             return redirect()
                 ->route('admin.users.index')
                 ->with('success', 'Admin user created successfully.');

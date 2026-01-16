@@ -24,6 +24,9 @@ class WorkflowService
     const STATUS_CLARIFICATION = 'Clarification'; // To User
     const STATUS_RETURNED = 'Returned'; // Internal return (e.g. Dy -> Clerk)
     const STATUS_SITE_VISIT = 'Site Visit Report';
+    const STATUS_SITE_VISIT_REQUESTED = 'Site Visit Requested';
+    const STATUS_CERTIFICATE_PENDING = 'Certificate Pending'; // After Director Approval
+    const STATUS_CERTIFICATE_ISSUED = 'Certificate Issued';
 
     public function getWorkflowStages($application)
     {
@@ -44,8 +47,9 @@ class WorkflowService
             ];
         }
 
-        // Default to short chain for others (Villa, Agro, Caravan, and Generic Application)
-        // Note: User said "Asst Director ka role nahi hai" for this model, so short chain (Clerk -> Dy -> Joint -> Director) is correct.
+        // Default to short chain or whatever logic for others
+        // User requested this specific flow for the 3 main models, but let's apply the structure generally if needed.
+        // For now, assuming the other models use the standard short chain.
         return [
             self::ROLE_CLERK,
             self::ROLE_DY_DIRECTOR,
@@ -120,25 +124,11 @@ class WorkflowService
                 $application->workflow_status = self::STATUS_PENDING; // Pending for next role
             } else {
                 // Final Approval
-                $application->workflow_status = 'Certificate Generated';
-                $application->status = 'approved'; // Update main status to Approved
+                // Final Approval - Director
+                $application->workflow_status = self::STATUS_CERTIFICATE_PENDING; // Moves to Asst Director for upload
+                $application->status = 'approved';
 
-                // Sync to Parent Application if exists
-                if (method_exists($application, 'application') && $application->application) {
-                    $item = $application->application;
-                    $item->workflow_status = 'Certificate Generated';
-                    $item->status = 'approved';
-                    $item->save();
-                }
-                // Fallback: check for application_id column directly
-                elseif (!empty($application->application_id)) {
-                    $parent = \App\Models\frontend\ApplicationForm\Application::find($application->application_id);
-                    if ($parent) {
-                        $parent->workflow_status = 'Certificate Generated';
-                        $parent->status = 'approved';
-                        $parent->save();
-                    }
-                }
+                // Note: The certificate is uploaded by Asst Director later.
             }
 
             $application->save();
@@ -151,12 +141,23 @@ class WorkflowService
         return DB::transaction(function () use ($application, $user, $remark) {
             $currentStage = $application->current_stage;
 
-            // Logic: Return usually goes back to Clerk or User?
-            // User says: "return back to clerk with clarification" or "return back to user".
-            // If "Return to Clerk/Asst Director" from Dy Director.
+            // Custom Return Logic based on User Request:
+            // Joint Director -> Asst Director (Tips: "ye bhejega bhir clerk ke pass" implied recursive return, but let's stick to immediate target)
+            // Dy Director -> Asst Director
+            // Asst Director -> Clerk
 
-            // For now, let's implement return to immediate previous internal stage
-            $prevStage = $this->getPreviousStage($application);
+            $targetStage = null;
+
+            if ($currentStage === self::ROLE_JOINT_DIRECTOR) {
+                $targetStage = self::ROLE_ASST_DIRECTOR;
+            } elseif ($currentStage === self::ROLE_DY_DIRECTOR) {
+                $targetStage = self::ROLE_ASST_DIRECTOR;
+            } elseif ($currentStage === self::ROLE_ASST_DIRECTOR) {
+                $targetStage = self::ROLE_CLERK;
+            } else {
+                // Default fallback (e.g. Director -> Joint Director)
+                $targetStage = $this->getPreviousStage($application);
+            }
 
             // Log
             ApplicationWorkflowLog::create([
@@ -166,36 +167,36 @@ class WorkflowService
                 'status' => self::STATUS_RETURNED,
                 'user_id' => $user->id,
                 'remark' => $remark,
-                'is_public' => false // Internal remarks
+                'is_public' => false
             ]);
 
-            if ($prevStage) {
-                // RESET DOCUMENT STATUS FOR PREVIOUS STAGE
-                // If Asst Director returns to Clerk, Clerk's 'Approved' docs become 'Pending'
+            if ($targetStage) {
+                // RESET DOCUMENT STATUS for the Target Stage (so they can review again)
                 if (method_exists($application, 'verificationDocuments')) {
                     foreach ($application->verificationDocuments as $doc) {
                         $approvals = $doc->role_approvals ?? [];
 
-                        // UNCONDITIONAL RESET (User Request: "sara reset ho jay")
-                        // Reset Previous Stage (Clerk) - Force re-verification
-                        if (isset($approvals[$prevStage])) {
-                            $approvals[$prevStage]['status'] = 'Pending';
+                        // Current stage marked as Pending (since they returned it)
+                        if (isset($approvals[$currentStage])) {
+                            $approvals[$currentStage]['status'] = 'Pending';
                         }
 
-                        // Reset Current Stage (Asst Director) - Show Pending in history
-                        $approvals[$currentStage]['status'] = 'Pending';
+                        // Target stage must also be Pending to allow them to take action
+                        if (isset($approvals[$targetStage])) {
+                            $approvals[$targetStage]['status'] = 'Pending';
+                        }
 
                         $doc->role_approvals = $approvals;
                         $doc->save();
                     }
                 }
 
-                $application->current_stage = $prevStage;
+                $application->current_stage = $targetStage;
                 $application->workflow_status = self::STATUS_RETURNED;
                 $application->save();
             }
 
-            return $prevStage;
+            return $targetStage;
         });
     }
 
@@ -249,9 +250,123 @@ class WorkflowService
                 'taluka_file_path' => $taluka_file_path
             ]);
 
-            $application->touch(); // Update updated_at
+            // Add to Verification Documents to enforce approval
+            if (method_exists($application, 'verificationDocuments')) {
+                $application->verificationDocuments()->updateOrCreate(
+                    ['document_key' => 'site_visit_report'],
+                    [
+                        'document_label' => 'Site Visit Report',
+                        'file_path' => $file_path,
+                        'overall_status' => 'Pending',
+                        'role_approvals' => [] // Reset so Dy Director must approve new report
+                    ]
+                );
+
+                if ($taluka_file_path) {
+                    $application->verificationDocuments()->updateOrCreate(
+                        ['document_key' => 'taluka_report_file'],
+                        [
+                            'document_label' => 'Taluka Agri Officer Inspection Report',
+                            'file_path' => $taluka_file_path,
+                            'overall_status' => 'Pending',
+                            'role_approvals' => []
+                        ]
+                    );
+                }
+            }
+
+            $application->workflow_status = self::STATUS_PENDING; // Moves back to Dy Director's view
+            $application->save();
 
             return $log;
+        });
+    }
+
+    public function rejectFullForm($application, $user, $remark)
+    {
+        return DB::transaction(function () use ($application, $user, $remark) {
+            $currentStage = $application->current_stage;
+
+            // Log
+            ApplicationWorkflowLog::create([
+                'application_type' => get_class($application),
+                'application_id' => $application->id,
+                'stage' => $currentStage,
+                'status' => self::STATUS_REJECTED,
+                'user_id' => $user->id,
+                'remark' => $remark,
+                'is_public' => true
+            ]);
+
+            $application->workflow_status = self::STATUS_REJECTED;
+            $application->status = 'rejected';
+            $application->save();
+
+            return true;
+        });
+    }
+
+    public function requestSiteVisit($application, $user)
+    {
+        return DB::transaction(function () use ($application, $user) {
+            $currentStage = $application->current_stage; // Should be Dy Director
+
+            // Log
+            ApplicationWorkflowLog::create([
+                'application_type' => get_class($application),
+                'application_id' => $application->id,
+                'stage' => $currentStage,
+                'status' => self::STATUS_SITE_VISIT_REQUESTED,
+                'user_id' => $user->id,
+                'remark' => 'Site Visit Report Requested',
+                'is_public' => false
+            ]);
+
+            // Status update
+            // We keep the current stage (Dy Director) but change status so Clerk sees it in "Site Visit Upload" list
+            // Or we check specific flag. Let's use workflow_status.
+            $application->workflow_status = self::STATUS_SITE_VISIT_REQUESTED;
+            $application->save();
+
+            return true;
+        });
+    }
+
+    public function uploadCertificate($application, $user, $filePath)
+    {
+        return DB::transaction(function () use ($application, $user, $filePath) {
+
+            // Log
+            ApplicationWorkflowLog::create([
+                'application_type' => get_class($application),
+                'application_id' => $application->id,
+                'stage' => self::ROLE_ASST_DIRECTOR,
+                'status' => self::STATUS_CERTIFICATE_ISSUED,
+                'user_id' => $user->id,
+                'remark' => 'Certificate Uploaded',
+                'is_public' => true
+            ]);
+
+            $application->workflow_status = self::STATUS_CERTIFICATE_ISSUED;
+            $application->certificate_path = $filePath; // Ensure model has this field or add it
+            $application->save();
+
+            // Sync to Parent Application if exists
+            if (method_exists($application, 'application') && $application->application) {
+                $item = $application->application;
+                $item->workflow_status = self::STATUS_CERTIFICATE_ISSUED;
+                $item->status = 'approved';
+                $item->save();
+            } elseif (!empty($application->application_id)) {
+                $parent = \App\Models\frontend\ApplicationForm\Application::find($application->application_id);
+                if ($parent) {
+                    $parent->workflow_status = self::STATUS_CERTIFICATE_ISSUED;
+                    $parent->status = 'approved';
+                    $parent->save();
+                }
+            }
+
+            return true;
         });
     }
 }

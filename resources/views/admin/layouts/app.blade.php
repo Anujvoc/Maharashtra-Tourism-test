@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en" data-bs-theme="light">
 
 <head>
     <meta charset="utf-8">
@@ -9,7 +9,8 @@
         content="Official Maharashtra Tourism landing page – discover destinations, experiences, and plan your trip." />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <!--favicon-->
-    {{-- <link rel="icon" href="assets/images/favicon-32x32.png" type="image/png"> --}}
+    {{--
+    <link rel="icon" href="assets/images/favicon-32x32.png" type="image/png"> --}}
     <link rel="icon" href="https://maharashtratourism.gov.in/wp-content/uploads/2025/01/mah-logo-300x277.png"
         sizes="32x32" type="image/png">
 
@@ -58,15 +59,16 @@
     @include('admin.partials.navbar')
 
     {{-- <div class="layout"> --}}
-    @include('admin.partials.sidebar')
-    {{-- <div class="content-wrap">
-     <main> --}}
-    @yield('content')
-    {{-- </main> --}}
+        @include('admin.partials.sidebar')
+        {{-- <div class="content-wrap">
+            <main> --}}
+                @yield('content')
+                {{-- </main> --}}
 
-    {{-- Footer --}}
-    @include('admin.partials.footer')
-    {{-- </div> --}}
+            {{-- Footer --}}
+            @include('admin.partials.footer')
+            {{--
+        </div> --}}
     </div>
 
     <script src="{{ asset('backend/assets/js/bootstrap.bundle.min.js') }}"></script>
@@ -94,12 +96,12 @@
 
     <script>
         $(document).ready(function () {
-  $("html").attr("data-bs-theme", "dark");
-});
+            $("html").attr("data-bs-theme", "light");
+        });
 
     </script>
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             $('.summernote').summernote({
                 height: 200,        // editor height
                 tabsize: 2
@@ -107,56 +109,56 @@
         });
     </script>
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
 
             var table = $('#example').DataTable({
                 dom: 'Bflrtip',
                 buttons: [{
-                        extend: 'print',
-                        text: 'Print',
-                        className: 'btn btn-primary text-white',
-                        exportOptions: {
-                            columns: ':not(.no_action)'
-                        }
-                    },
+                    extend: 'print',
+                    text: 'Print',
+                    className: 'btn btn-primary text-white',
+                    exportOptions: {
+                        columns: ':not(.no_action)'
+                    }
+                },
 
-                    {
-                        extend: 'csv',
-                        text: 'CSV',
-                        className: 'btn btn-secondary text-white',
-                        exportOptions: {
-                            columns: ':not(.no_action)'
-                        }
-                    },
+                {
+                    extend: 'csv',
+                    text: 'CSV',
+                    className: 'btn btn-secondary text-white',
+                    exportOptions: {
+                        columns: ':not(.no_action)'
+                    }
+                },
 
-                    {
-                        extend: 'excel',
-                        text: 'Excel',
-                        className: 'btn btn-success text-white',
-                        exportOptions: {
-                            columns: ':not(.no_action)'
-                        }
-                    },
+                {
+                    extend: 'excel',
+                    text: 'Excel',
+                    className: 'btn btn-success text-white',
+                    exportOptions: {
+                        columns: ':not(.no_action)'
+                    }
+                },
 
-                    {
-                        extend: 'pdf',
-                        text: 'PDF',
-                        className: 'btn btn-danger text-white',
-                        orientation: 'landscape',
-                        pageSize: 'LEGAL',
-                        exportOptions: {
-                            columns: ':not(.no_action)'
-                        }
-                    },
+                {
+                    extend: 'pdf',
+                    text: 'PDF',
+                    className: 'btn btn-danger text-white',
+                    orientation: 'landscape',
+                    pageSize: 'LEGAL',
+                    exportOptions: {
+                        columns: ':not(.no_action)'
+                    }
+                },
 
-                    {
-                        extend: 'copy',
-                        text: 'Copy',
-                        className: 'btn btn-warning text-white',
-                        exportOptions: {
-                            columns: ':not(.no_action)'
-                        }
-                    },
+                {
+                    extend: 'copy',
+                    text: 'Copy',
+                    className: 'btn btn-warning text-white',
+                    exportOptions: {
+                        columns: ':not(.no_action)'
+                    }
+                },
                 ]
 
             });
@@ -168,7 +170,7 @@
         });
     </script>
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
 
             var table = $('#example2').DataTable({
                 lengthChange: false,
@@ -178,51 +180,51 @@
                     [10, 25, 50, 100, "All"]
                 ],
                 buttons: [{
-                        extend: 'print',
-                        text: 'Print',
-                        className: 'btn btn-outline-secondary',
-                        exportOptions: {
-                            columns: ':not(.no_action)'
-                        }
-                    },
+                    extend: 'print',
+                    text: 'Print',
+                    className: 'btn btn-outline-secondary',
+                    exportOptions: {
+                        columns: ':not(.no_action)'
+                    }
+                },
 
-                    {
-                        extend: 'csv',
-                        text: 'CSV',
-                        className: 'btn btn-outline-secondary',
-                        exportOptions: {
-                            columns: ':not(.no_action)'
-                        }
-                    },
+                {
+                    extend: 'csv',
+                    text: 'CSV',
+                    className: 'btn btn-outline-secondary',
+                    exportOptions: {
+                        columns: ':not(.no_action)'
+                    }
+                },
 
-                    {
-                        extend: 'excel',
-                        text: 'Excel',
-                        className: 'btn btn-outline-secondary',
-                        exportOptions: {
-                            columns: ':not(.no_action)'
-                        }
-                    },
+                {
+                    extend: 'excel',
+                    text: 'Excel',
+                    className: 'btn btn-outline-secondary',
+                    exportOptions: {
+                        columns: ':not(.no_action)'
+                    }
+                },
 
-                    {
-                        extend: 'pdf',
-                        text: 'PDF',
-                        className: 'btn btn-outline-secondary',
-                        orientation: 'landscape',
-                        pageSize: 'LEGAL',
-                        exportOptions: {
-                            columns: ':not(.no_action)'
-                        }
-                    },
+                {
+                    extend: 'pdf',
+                    text: 'PDF',
+                    className: 'btn btn-outline-secondary',
+                    orientation: 'landscape',
+                    pageSize: 'LEGAL',
+                    exportOptions: {
+                        columns: ':not(.no_action)'
+                    }
+                },
 
-                    {
-                        extend: 'copy',
-                        text: 'Copy',
-                        className: 'btn btn-outline-secondary',
-                        exportOptions: {
-                            columns: ':not(.no_action)'
-                        }
-                    },
+                {
+                    extend: 'copy',
+                    text: 'Copy',
+                    className: 'btn btn-outline-secondary',
+                    exportOptions: {
+                        columns: ':not(.no_action)'
+                    }
+                },
                 ]
             });
             table.buttons().container().appendTo('#example2_wrapper .col-md-6:eq(0)');
@@ -231,57 +233,57 @@
 
     <script>
 
-$(document).ready(function () {
-    $('body').on('click', '.deletebutton', function (e) {
-        e.preventDefault();
+        $(document).ready(function () {
+            $('body').on('click', '.deletebutton', function (e) {
+                e.preventDefault();
 
-        var url = $(this).attr('href');
+                var url = $(this).attr('href');
 
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: url,
-                    type: 'DELETE',
-                    data: {
-                        _token: '{{ csrf_token() }}'
-                    },
-                    success: function(response) {
-                        if (response.status == 'success') {
-                            Swal.fire({
-                                title: 'Deleted!',
-                                text: response.message,
-                                icon: 'success'
-                            }).then(() => {
-                                window.location.reload();
-                            });
-                        } else if (response.status == 'error') {
-                            Swal.fire({
-                                title: 'Cannot delete',
-                                text: response.message,
-                                icon: 'error'
-                            });
-                        }
-                    },
-                    error: function(xhr) {
-                        Swal.fire({
-                            title: 'Error!',
-                            text: 'Something went wrong while deleting.',
-                            icon: 'error'
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: url,
+                            type: 'DELETE',
+                            data: {
+                                _token: '{{ csrf_token() }}'
+                            },
+                            success: function (response) {
+                                if (response.status == 'success') {
+                                    Swal.fire({
+                                        title: 'Deleted!',
+                                        text: response.message,
+                                        icon: 'success'
+                                    }).then(() => {
+                                        window.location.reload();
+                                    });
+                                } else if (response.status == 'error') {
+                                    Swal.fire({
+                                        title: 'Cannot delete',
+                                        text: response.message,
+                                        icon: 'error'
+                                    });
+                                }
+                            },
+                            error: function (xhr) {
+                                Swal.fire({
+                                    title: 'Error!',
+                                    text: 'Something went wrong while deleting.',
+                                    icon: 'error'
+                                });
+                            }
                         });
                     }
                 });
-            }
+            });
         });
-    });
-});
 
     </script>
 

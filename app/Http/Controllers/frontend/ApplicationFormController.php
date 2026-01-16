@@ -284,39 +284,39 @@ class ApplicationFormController extends Controller
                 return redirect()->back()->with('error', 'Already Registered this Application');
             }
 
-            $userApplication = Application::where('user_id', $userId)
-                ->where('application_form_id', $application_form->id)
-                ->first();
+            // $userApplication = Application::where('user_id', $userId)
+            //     ->where('application_form_id', $application_form->id)
+            //     ->first();
 
-            if ($userApplication) {
+            // if ($userApplication) {
 
-                if ($userApplication->is_apply) {
-                    return redirect()->back()->with('error', 'Already Registered this Application');
-                }
+            //     if ($userApplication->is_apply) {
+            //         return redirect()->back()->with('error', 'Already Registered this Application');
+            //     }
 
-                $userApplication->update([
-                    'status'       => 'draft',
-                    'is_apply'     => false,
-                    'current_step' => $userApplication->current_step ?? 1,
-                ]);
+            //     $userApplication->update([
+            //         'status'       => 'draft',
+            //         'is_apply'     => false,
+            //         'current_step' => $userApplication->current_step ?? 1,
+            //     ]);
 
-            } else {
-                $userApplication = Application::create([
-                    'user_id'             => $userId,
-                    'application_form_id' => $application_form->id,
-                    'slug_id'             => 'ind-' . Str::ulid(),
-                    'status'              => 'draft',
-                    'is_apply'            => false,
-                    'registration_id' => 'PVR-' . str_pad(random_int(0, 99999999), 8, '0', STR_PAD_LEFT),
-                    'current_step'        => 1,
-                    'submitted_at' => now(),
-                ]);
-            }
+            // } else {
+            //     $userApplication = Application::create([
+            //         'user_id'             => $userId,
+            //         'application_form_id' => $application_form->id,
+            //         'slug_id'             => 'ind-' . Str::ulid(),
+            //         'status'              => 'draft',
+            //         'is_apply'            => false,
+            //         'registration_id' => 'PVR-' . str_pad(random_int(0, 99999999), 8, '0', STR_PAD_LEFT),
+            //         'current_step'        => 1,
+            //         'submitted_at' => now(),
+            //     ]);
+            // }
 
             $registration = ProvisionalRegistration::firstOrCreate(
                 [
-                    'application_id' => $userApplication->id,
-                    'application_form_id' => $userApplication->application_form_id,
+
+                    'application_form_id' => $application_form->id,
                     'user_id'        => $userId,
                     'registration_id' => 'PVR-' . str_pad(random_int(0, 99999999), 8, '0', STR_PAD_LEFT),
                     'slug_id' => 'PVR-' . str_pad(random_int(0, 99999999), 8, '0', STR_PAD_LEFT),
@@ -330,10 +330,10 @@ class ApplicationFormController extends Controller
 
             $step = $registration->current_step ?? 1;
 
-            // Optional: sync Application ke current_step ko bhi
-            $userApplication->current_step = $step;
-            // $userApplication->progress     = $registration->progress;
-            $userApplication->save();
+            // // Optional: sync Application ke current_step ko bhi
+            // $userApplication->current_step = $step;
+            // // $userApplication->progress     = $registration->progress;
+            // $userApplication->save();
 
             // 4. View ke liye data
             $user         = Auth::user();
@@ -345,7 +345,7 @@ class ApplicationFormController extends Controller
             // IMPORTANT: variables ko clear naam se bhejo
             return view('frontend.Application.provisional.step1', [
                 'application_form' => $application_form,
-                'application'      => $userApplication,
+                // 'application'      => $userApplication,
                 'registration'     => $registration,
                 'user'             => $user,
                 'regions'          => $regions,
@@ -353,7 +353,7 @@ class ApplicationFormController extends Controller
                 'categories'       => $categories,
                 'applicantTypes'   => $applicantTypes,
                 'id'               => $application_form->id,
-                'step'             => $step,
+                 'step'             => $step,
             ]);
         }
 

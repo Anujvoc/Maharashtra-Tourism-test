@@ -23,19 +23,19 @@ class EligibilityRegistrationController extends Controller
         // dd($request->all());
         try {
             $validated = $request->validate([
-                'applicant_name'     => ['required','string','max:255','regex:/^[A-Za-z\s]+$/'],
-                'provisional_number' => ['nullable','string','max:255'],
-                'gst_number'         => ['nullable','string','max:15'],
-                'project_description'=> ['required','string','min:10'],
-                'region_id'   => ['required', 'integer', 'exists:divisions,id'],
+                'applicant_name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s]+$/'],
+                'provisional_number' => ['nullable', 'string', 'max:255'],
+                'gst_number' => ['nullable', 'string', 'max:15'],
+                'project_description' => ['required', 'string', 'min:10'],
+                'region_id' => ['required', 'integer', 'exists:divisions,id'],
                 'district_id' => ['required', 'integer', 'exists:districts,id'],
-                'commencement_date'  => ['nullable','date'],
-                'operation_details'  => ['nullable','string','max:255'],
-                'declaration_place'  => ['required','string','max:255','regex:/^[A-Za-z\s]+$/'],
-                'declaration_date'   => ['required','date'],
-                'signature_upload'   => ['required','file','mimes:jpg,jpeg,png,pdf','max:2048'],
-            ],[
-                'applicant_name.regex'    => 'Name may contain only letters and spaces.',
+                'commencement_date' => ['nullable', 'date'],
+                'operation_details' => ['nullable', 'string', 'max:255'],
+                'declaration_place' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s]+$/'],
+                'declaration_date' => ['required', 'date'],
+                'signature_upload' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
+            ], [
+                'applicant_name.regex' => 'Name may contain only letters and spaces.',
                 'declaration_place.regex' => 'Place may contain only letters and spaces.',
             ]);
 
@@ -52,10 +52,10 @@ class EligibilityRegistrationController extends Controller
 
 
             // JSON fields
-            $entrepreneurs  = $request->input('entrepreneurs', []);
-            $costComponent  = $request->input('cost_component', []);
-            $assetAge       = $request->input('asset_age', []);
-            $ownership      = $request->input('ownership', []); // sab ownership[...][] checkboxes bhi isme
+            $entrepreneurs = $request->input('entrepreneurs', []);
+            $costComponent = $request->input('cost_component', []);
+            $assetAge = $request->input('asset_age', []);
+            $ownership = $request->input('ownership', []); // sab ownership[...][] checkboxes bhi isme
 
             // Enclosures (each key -> doc_no, issue_date, file)
             $enclosures = [];
@@ -65,17 +65,17 @@ class EligibilityRegistrationController extends Controller
 
                     if ($request->hasFile("enclosures.$key.file")) {
                         $file = $request->file("enclosures.$key.file");
-                        $label    = $enclosure['label'] ?? $key;
+                        $label = $enclosure['label'] ?? $key;
                         $safeName = Str::slug($label, '_');
 
                         $filename = $safeName . '_' . time() . '.' . $file->getClientOriginalExtension();
                         $filePath = $file->storeAs('eligibility/enclosures', $filename, 'public');
                     }
                     $enclosures[$key] = [
-                        'label'      => $enc['label'] ?? null,
-                        'doc_no'     => $enc['doc_no'] ?? null,
+                        'label' => $enc['label'] ?? null,
+                        'doc_no' => $enc['doc_no'] ?? null,
                         'issue_date' => $enc['issue_date'] ?? null,
-                        'file_path'  => $filePath,
+                        'file_path' => $filePath,
                     ];
                 }
             }
@@ -95,59 +95,61 @@ class EligibilityRegistrationController extends Controller
                     }
 
                     $otherDocs[] = [
-                        'name'          => $doc['name'] ?? null,
-                        'doc_no'        => $doc['doc_no'] ?? null,
-                        'issue_date'    => $doc['issue_date'] ?? null,
+                        'name' => $doc['name'] ?? null,
+                        'doc_no' => $doc['doc_no'] ?? null,
+                        'issue_date' => $doc['issue_date'] ?? null,
                         'validity_date' => $doc['validity_date'] ?? null,
-                        'file_path'     => $filePath,
+                        'file_path' => $filePath,
                     ];
                 }
             }
 
-            $appFormId      = $request->input('application_form_id');
+            $appFormId = $request->input('application_form_id');
             $registrationId = 'ELIG-' . strtoupper(Str::random(8));
 
             $registration = EligibilityRegistration::create([
-                'applicant_name'      => $validated['applicant_name'],
-                'provisional_number'  => $validated['provisional_number'] ?? null,
-                'gst_number'          => $validated['gst_number'] ?? null,
+                'applicant_name' => $validated['applicant_name'],
+                'provisional_number' => $validated['provisional_number'] ?? null,
+                'gst_number' => $validated['gst_number'] ?? null,
 
-                'entrepreneurs'       => $entrepreneurs,
+                'entrepreneurs' => $entrepreneurs,
                 'project_description' => $validated['project_description'],
 
-                'commencement_date'   => $validated['commencement_date'] ?? null,
-                'operation_details'   => $validated['operation_details'] ?? null,
+                'commencement_date' => $validated['commencement_date'] ?? null,
+                'operation_details' => $validated['operation_details'] ?? null,
 
-                'region_id'   => $validated['region_id'] ?? null,
-                'district_id'   => $validated['district_id'] ?? null,
+                'region_id' => $validated['region_id'] ?? null,
+                'district_id' => $validated['district_id'] ?? null,
 
-                'cost_component'      => $costComponent,
-                'asset_age'           => $assetAge,
-                'ownership'           => $ownership,
+                'cost_component' => $costComponent,
+                'asset_age' => $assetAge,
+                'ownership' => $ownership,
 
-                'enclosures'          => $enclosures,
-                'other_docs'          => $otherDocs,
+                'enclosures' => $enclosures,
+                'other_docs' => $otherDocs,
 
-                'signature_path'      => $signaturePath,
-                'declaration_place'   => $validated['declaration_place'],
-                'declaration_date'    => $validated['declaration_date'],
+                'signature_path' => $signaturePath,
+                'declaration_place' => $validated['declaration_place'],
+                'declaration_date' => $validated['declaration_date'],
 
-                'status'              => 'submitted',
-                'is_apply'            => true,
-                'submitted_at'        => Carbon::now(),
+                'status' => 'submitted',
+                'is_apply' => true,
+                'submitted_at' => Carbon::now(),
 
-                'user_id'             => Auth::id(),
-                'registration_id'     => $registrationId,
-                'slug_id'             => (string) Str::uuid(),
+                'user_id' => Auth::id(),
+                'registration_id' => $registrationId,
+                'slug_id' => (string) Str::uuid(),
                 'application_form_id' => $appFormId,
+                'current_stage' => 'Clerk',
+                'workflow_status' => 'Pending',
             ]);
 
             DB::commit();
 
             if ($request->ajax()) {
                 return response()->json([
-                    'status'       => 'success',
-                    'message'      => 'Eligibility Application submitted successfully.',
+                    'status' => 'success',
+                    'message' => 'Eligibility Application submitted successfully.',
                     // 'redirect_url' => route('eligibility-registrations.show', $registration->id),
                     'redirect_url' => route('applications.index'),
                 ]);
@@ -162,7 +164,7 @@ class EligibilityRegistrationController extends Controller
 
             if ($request->ajax()) {
                 return response()->json([
-                    'status'  => 'error',
+                    'status' => 'error',
                     'message' => 'Something went wrong. Please try again.',
                 ], 500);
             }
@@ -179,10 +181,11 @@ class EligibilityRegistrationController extends Controller
         $application_form = ApplicationForm::find($registration->application_form_id);
         $region = Divisions::find($registration->region_id);
         $district = District::find($registration->district_id);
-        return view('frontend.Application.Eligibility.reports', compact('registration',
-        'application_form',
-        'region',
-        'district'
-    ));
+        return view('frontend.Application.Eligibility.reports', compact(
+            'registration',
+            'application_form',
+            'region',
+            'district'
+        ));
     }
 }

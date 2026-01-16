@@ -29,7 +29,92 @@ use App\Models\Admin\Master\Divisions;
 
 class ProvisionalRegistrationController extends Controller
 {
-    public function show(Application $application, $step)
+    public function show($step)
+{
+    $userId = Auth::id();
+    $registration = ProvisionalRegistration::firstOrCreate(
+        [
+            'user_id' => $userId,
+            'application_form_id' => ApplicationForm::where(
+                'slug',
+                'issuance-of-temporary-registration-certificate'
+            )->value('id'),
+        ],
+        [
+            'current_step' => 1,
+            'progress' => ['done' => 0, 'total' => 6],
+        ]
+    );
+
+    // prevent skipping steps
+    if ($step > ($registration->progress['done'] + 1)) {
+        return redirect()->route(
+            'provisional.wizard.show',
+            $registration->progress['done'] + 1
+        );
+    }
+
+    $registration->update([
+        'current_step' => $step
+    ]);
+
+    if($registration->current_step==6){
+
+    }
+
+   $application_form = ApplicationForm::where('slug','issuance-of-temporary-registration-certificate')->first();
+// dd($application_form);
+    return view('frontend.Application.provisional.step' . $step, [
+        'registration'   => $registration,
+        'application_form'   => $application_form,
+        'step'           => $step,
+        'applicantTypes' => Enterprise::select('id','name')->get(),
+        'regions'        => DB::table('divisions')->select('id','name')->get(),
+        'districts'      => DB::table('districts')->where('state_id', 14)->get(),
+        'states'         => DB::table('states')->where('id', 14)->get(),
+        'categories'     => Category::all(),
+    ]);
+}
+
+public function saveStep(Request $request, $step)
+{
+    $registration = ProvisionalRegistration::where('user_id', Auth::id())
+        ->firstOrFail();
+
+    $validated = $request->validate(
+        $this->getValidationRules($step)
+    );
+
+    $this->processStepData($registration, $step, $validated, $request);
+
+    // update progress
+    $registration->updateProgress($step);
+
+    if ($step == 6) {
+        $registration->update([
+            'is_apply'     => true,
+            
+            'submitted_at'=> now(),
+        ]);
+
+        if ($step == 6) {
+            $registration->markAsCompleted();
+            return redirect()->route('applications.index')
+                ->with('success', 'Application submitted successfully!');
+        }
+
+        return redirect()
+            ->route('applications.index')
+            ->with('success', 'Application submitted successfully');
+    }
+
+    return redirect()
+        ->route('provisional.wizard.show', $step + 1)
+        ->with('success', "Step {$step} saved successfully");
+}
+
+
+    public function showc(Application $application, $step)
     {
 
         $registration = ProvisionalRegistration::firstOrCreate(
@@ -53,7 +138,6 @@ class ProvisionalRegistrationController extends Controller
         $categories   = Category::all();
         $application_form = ApplicationForm::where('id', $registration->application_form_id)
             ->firstOrFail();
-        // Determine which view to show based on step
         $view = 'frontend.Application.provisional.step' . $step;
 
         return view($view, [
@@ -68,7 +152,7 @@ class ProvisionalRegistrationController extends Controller
             'step' => $step
         ]);
     }
-    public function saveStep(Request $request, Application $application, $step)
+    public function saveStepc(Request $request, Application $application, $step)
     {
         $registration = ProvisionalRegistration::where('application_id', $application->id)
             ->where('user_id', Auth::id())
@@ -328,7 +412,13 @@ class ProvisionalRegistrationController extends Controller
                     $removeExisting = $request->input("remove_existing_enclosures.$doc") == '1';
 
                     // New upload (agar kuch select kiya ho)
-                    $newFilePath = $this->uploadFile($request, $doc . '_file');
+                    // $newFilePath = $this->uploadFile($request, $doc . '_file');
+                    $newFilePath = $this->uploadFile(
+                        $request,
+                        $doc . '_file',
+                        $doc // document name
+                    );
+
 
                     // Default: purana file_path
                     $finalPath = $oldItem['file_path'] ?? null;
@@ -441,7 +531,40 @@ class ProvisionalRegistrationController extends Controller
                 break;
         }
     }
-    private function uploadFile($request, $fieldName, $index = null)
+    private function uploadFile($request, $fieldName, $docName = null, $index = null)
+{
+    // Handle array file (other documents etc.)
+    if ($index !== null) {
+        $files = $request->file($fieldName);
+        if (!is_array($files) || !isset($files[$index])) {
+            return null;
+        }
+        $file = $files[$index];
+    } else {
+        $file = $request->file($fieldName);
+    }
+
+    if (!$file || !$file->isValid()) {
+        return null;
+    }
+
+    $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+    $extension    = $file->getClientOriginalExtension();
+
+    // safe names
+    $safeOriginal = Str::slug($originalName);
+    $safeDocName  = $docName ? Str::slug($docName) : 'document';
+
+    // filename = docname_original_timestamp.ext
+    $fileName = $safeDocName . '_' . $safeOriginal . '_' . time() . '_' . uniqid() . '.' . $extension;
+
+    // 📁 FINAL DIRECTORY
+    $directory = 'ProvisionalRegistration/' . $safeDocName;
+
+    return $file->storeAs($directory, $fileName, 'public');
+}
+
+    private function uploadFile23($request, $fieldName, $index = null)
     {
         if ($index !== null) {
             $files = $request->file($fieldName);
@@ -466,23 +589,7 @@ class ProvisionalRegistrationController extends Controller
 
         return $file->storeAs($directory, $fileName, 'public');
     }
-    private function uploadFile1($request, $fieldName, $index = null)
-    {
-        if ($index !== null) {
-            $file = $request->file($fieldName)[$index] ?? null;
-        } else {
-            $file = $request->file($fieldName);
-        }
 
-        if ($file && $file->isValid()) {
-            return $file->store('documents/' . Auth::id(), 'public');
-        }
-
-        return null;
-    }
-
-
-    // View submitted application
     public function showApplication($id)
     {
         $registration = ProvisionalRegistration::where('id', $id)

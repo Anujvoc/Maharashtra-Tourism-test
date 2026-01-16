@@ -182,7 +182,7 @@
                     </div>
 
                     <div class="text-end mt-2">
-                        <a href="{{ route('provisional.wizard.show', [$application, 'step' => 1]) }}" class="edit-btn">
+                        <a href="{{ route('provisional.wizard.show', ['step' => 1]) }}" class="edit-btn">
                             <i class="bi bi-pencil me-1"></i> Edit Step 1
                         </a>
                     </div>
@@ -330,7 +330,7 @@
                     @endif
 
                     <div class="text-end mt-2">
-                        <a href="{{ route('provisional.wizard.show', [$application, 'step' => 2]) }}" class="edit-btn">
+                        <a href="{{ route('provisional.wizard.show', ['step' => 2]) }}" class="edit-btn">
                             <i class="bi bi-pencil me-1"></i> Edit Step 2
                         </a>
                     </div>
@@ -414,7 +414,7 @@
                     @endif
 
                     <div class="text-end mt-2">
-                        <a href="{{ route('provisional.wizard.show', [$application, 'step' => 3]) }}" class="edit-btn">
+                        <a href="{{ route('provisional.wizard.show', ['step' => 3]) }}" class="edit-btn">
                             <i class="bi bi-pencil me-1"></i> Edit Step 3
                         </a>
                     </div>
@@ -487,7 +487,7 @@
                     </div>
 
                     <div class="text-end mt-2">
-                        <a href="{{ route('provisional.wizard.show', [$application, 'step' => 4]) }}" class="edit-btn">
+                        <a href="{{ route('provisional.wizard.show', ['step' => 4]) }}" class="edit-btn">
                             <i class="bi bi-pencil me-1"></i> Edit Step 4
                         </a>
                     </div>
@@ -724,7 +724,7 @@ $totalDocs = $enclosureCount + $otherDocsCount;
             <span>{{ $totalDocs }} document(s)</span>
         </div>
         <div>
-            <a href="{{ route('provisional.wizard.show', [$application, 'step' => 5]) }}"
+            <a href="{{ route('provisional.wizard.show', ['step' => 5]) }}"
                class="edit-btn">
                 <i class="bi bi-pencil me-1"></i> Edit Step 5
             </a>
@@ -743,7 +743,7 @@ $totalDocs = $enclosureCount + $otherDocsCount;
             {{-- =============================================
                 DECLARATION FORM
             ============================================= --}}
-            <form id="stepForm" action="{{ route('provisional.wizard.save', [$application->id, $step]) }}" method="POST" enctype="multipart/form-data" novalidate>
+            <form id="stepForm" action="{{ route('provisional.wizard.save', [$step]) }}" method="POST" enctype="multipart/form-data" novalidate>
                 @csrf
 
                 <div class="review-card mt-4">
@@ -879,7 +879,7 @@ $totalDocs = $enclosureCount + $otherDocsCount;
 
                 {{-- Navigation Buttons --}}
                 <div class="d-flex justify-content-between mt-4">
-                    <a href="{{ route('provisional.wizard.show', [$application->id, $step - 1]) }}"
+                    <a href="{{ route('provisional.wizard.show', [$step - 1]) }}"
                        class="btn btn-primary">
                         <i class="bi bi-arrow-left"></i> Previous
                     </a>

@@ -110,7 +110,7 @@ class ApplicationController extends Controller
                 $rows = $modelClass::where('user_id', $userId)
                     ->select(
                         'id',
-                        'application_id',
+                        // 'application_id',
                         'application_form_id',
                         'registration_id',
                         'status',

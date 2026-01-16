@@ -60,7 +60,9 @@ class ProvisionalRegistration extends Model
         'current_step',
         'progress',
         'is_completed',
-        'status'
+        'status',
+        'current_stage',
+        'workflow_status',
     ];
 
     protected $guarded = [];
@@ -165,7 +167,8 @@ class ProvisionalRegistration extends Model
         $this->current_step = 6;
         $this->progress = ['done' => 6, 'total' => 6];
         $this->status = 'submitted';
-        $this->status = 'submitted';
+        $this->current_stage = 'Clerk';
+        $this->workflow_status = 'Pending';
         $this->submitted_at = now();
         $this->save();
 

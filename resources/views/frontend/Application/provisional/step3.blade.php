@@ -72,7 +72,7 @@
 
         <div class="card-body">
             <form id="stepForm"
-                  action="{{ route('provisional.wizard.save', [$application->id, $step]) }}"
+                  action="{{ route('provisional.wizard.save',$step) }}"
                   method="POST"
                   novalidate>
                 @csrf
@@ -281,7 +281,7 @@
 
                 {{-- Navigation Buttons --}}
                 <div class="d-flex justify-content-between mt-3">
-                    <a href="{{ route('provisional.wizard.show', [$application, $step - 1]) }}"
+                    <a href="{{ route('provisional.wizard.show', [$step - 1]) }}"
                        class="btn btn-primary">
                         <i class="bi bi-arrow-left"></i> Previous
                     </a>

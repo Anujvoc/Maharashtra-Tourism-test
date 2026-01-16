@@ -14,6 +14,13 @@ use App\Http\Controllers\Admin\Master\Accomodation\GeneralRequirementController;
 use App\Http\Controllers\Admin\Master\Accomodation\GuestServiceController;
 use App\Http\Controllers\Admin\Master\Accomodation\SafetyAndSecurityController;
 
+use App\Http\Controllers\Admin\Master\classificationZone\Area\AreaController;
+use App\Http\Controllers\Admin\Master\classificationZone\Zone\ZoneController;
+use App\Http\Controllers\Admin\Master\ProjectCategory\ProjectTypeController;
+use App\Http\Controllers\Admin\Master\ProjectCategory\ProjectCategoryController;
+use App\Http\Controllers\Admin\Master\ownershipBusiness\OwnershipOfBusinessController;
+
+
 use App\Http\Controllers\Admin\Master\Caravan\CaravanTypeController;
 use App\Http\Controllers\Admin\Master\Caravan\CaravanAmenityController;
 use App\Http\Controllers\Admin\Master\Caravan\CaravanOptionalFeatureController;
@@ -48,7 +55,7 @@ Route::middleware(['auth', 'is_role:admin']) // adjust as needed
             ->name('divisions.data');
 
         // Caravan
-    
+
         Route::resource('amenities', CaravanAmenityController::class);
         Route::get('amenities-data', [CaravanAmenityController::class, 'data'])
             ->name('amenities.data');
@@ -80,6 +87,33 @@ Route::middleware(['auth', 'is_role:admin']) // adjust as needed
         Route::resource('additionalFeature', AdditionalFeatureController::class);
         Route::get('additionalFeature-data', [AdditionalFeatureController::class, 'data'])
             ->name('additionalFeature.data');
+
+             // Ownership of Business proof of document
+     Route::resource('business-proof-doc',OwnershipOfBusinessController::class);
+     Route::get('business-proof-doc-data',[OwnershipOfBusinessController::class, 'data'])
+     ->name('business-proof-doc.data');
+
+     //Area Classification
+     Route::resource('area',AreaController::class);
+     Route::get('area-data',[AreaController::class,'data'])
+     ->name('area.data');
+
+     //Zone Classification
+     Route::resource('zone',ZoneController::class);
+     Route::get('zone-data',[ZoneController::class,'data'])
+     ->name('zone.data');
+
+     //Project Types
+     Route::resource('projectType',ProjectTypeController::class);
+     Route::get('projectType-data',[ProjectTypeController::class,'data'])
+     ->name('projectType.data');
+
+     //Project Category
+     Route::resource('projectCategory',ProjectCategoryController::class);
+     Route::get('projectCategory-data',[ProjectCategoryController::class,'data'])
+     ->name('projectCategory.data');
+
+
     });
 
 Route::middleware(['auth', 'is_role:admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -154,6 +188,11 @@ Route::middleware(['auth', 'is_role:admin'])->prefix('admin')->name('admin.')->g
     Route::post('/workflow/{type}/{id}/return', [App\Http\Controllers\Admin\WorkflowController::class, 'returnBack'])->name('workflow.return');
     Route::post('/workflow/{type}/{id}/clarify', [App\Http\Controllers\Admin\WorkflowController::class, 'sendClarification'])->name('workflow.clarify');
     Route::post('/workflow/{type}/{id}/site-report', [App\Http\Controllers\Admin\WorkflowController::class, 'submitSiteReport'])->name('workflow.site-report');
+
+    // NEW ROLE BASED ROUTES
+    Route::post('/workflow/{type}/{id}/reject', [App\Http\Controllers\Admin\WorkflowController::class, 'reject'])->name('workflow.reject');
+    Route::post('/workflow/{type}/{id}/request-site-visit', [App\Http\Controllers\Admin\WorkflowController::class, 'requestSiteVisitAction'])->name('workflow.request-visit');
+    Route::post('/workflow/{type}/{id}/upload-certificate', [App\Http\Controllers\Admin\WorkflowController::class, 'uploadCertificate'])->name('workflow.upload-certificate');
 
     // Document Verification Routes
     Route::post('/documents/{id}/approve', [App\Http\Controllers\Admin\DocumentVerificationController::class, 'approve'])->name('documents.approve');

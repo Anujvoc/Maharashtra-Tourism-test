@@ -56,7 +56,7 @@ class WorkflowController extends Controller
 
         $application = $modelClass::findOrFail($id);
 
-      
+
         $this->workflowService->forward($application, Auth::user(), $request->input('remark'));
 
         if ($request->ajax() || $request->wantsJson()) {
@@ -84,33 +84,8 @@ class WorkflowController extends Controller
             return redirect()->back()->with('error', 'Remark is required for returning.');
         }
 
-        // Cleanup Site Visit Report if exists (when returning from Dy Director)
-        if (Auth::user()->hasRole('Dy Director')) {
-            // Find existing report
-            $existingReport = \App\Models\SiteVisitReport::where('application_id', $application->id)
-                ->where('application_type', get_class($application))
-                ->first();
-
-            if ($existingReport) {
-                // Delete File
-                if ($existingReport->file_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($existingReport->file_path)) {
-                    \Illuminate\Support\Facades\Storage::disk('public')->delete($existingReport->file_path);
-                }
-
-                // Delete Taluka File
-                if ($existingReport->taluka_file_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($existingReport->taluka_file_path)) {
-                    \Illuminate\Support\Facades\Storage::disk('public')->delete($existingReport->taluka_file_path);
-                }
-
-                // Delete Log if exists
-                if ($existingReport->workflowLog) {
-                    $existingReport->workflowLog->delete();
-                }
-
-                // Delete Report Record
-                $existingReport->delete();
-            }
-        }
+        // Cleanup Logic Removed as per requirement: Document should not be deleted on return.
+        // if (Auth::user()->hasRole('Dy Director')) { ... }
 
         $this->workflowService->returnBack($application, Auth::user(), $remark);
 
@@ -195,5 +170,54 @@ class WorkflowController extends Controller
         $this->workflowService->siteVisitReport($application, $user, $request->input('remark'), $file_path, $taluka_file_path);
 
         return redirect()->back()->with('success', 'Site visit report submitted successfully.');
+    }
+    public function reject(Request $request, $type, $id)
+    {
+        $modelClass = $this->getModelClass($type);
+        if (!$modelClass)
+            abort(404);
+
+        $application = $modelClass::findOrFail($id);
+        $remark = $request->input('remark');
+
+        if (!$remark) {
+            return redirect()->back()->with('error', 'Remark is required for rejection.');
+        }
+
+        $this->workflowService->rejectFullForm($application, Auth::user(), $remark);
+
+        return redirect()->back()->with('success', 'Application rejected successfully.');
+    }
+
+    public function requestSiteVisitAction(Request $request, $type, $id)
+    {
+        $modelClass = $this->getModelClass($type);
+        if (!$modelClass)
+            abort(404);
+
+        $application = $modelClass::findOrFail($id);
+
+        $this->workflowService->requestSiteVisit($application, Auth::user());
+
+        return redirect()->back()->with('success', 'Site Visit Requested. Notification sent to Clerk.');
+    }
+
+    public function uploadCertificate(Request $request, $type, $id)
+    {
+        $modelClass = $this->getModelClass($type);
+        if (!$modelClass)
+            abort(404);
+
+        $application = $modelClass::findOrFail($id);
+
+        $request->validate([
+            'certificate_file' => 'required|file|mimes:pdf|max:5120',
+        ]);
+
+        $filePath = $request->file('certificate_file')->store('certificates', 'public');
+
+        $this->workflowService->uploadCertificate($application, Auth::user(), $filePath);
+
+        return redirect()->back()->with('success', 'Certificate uploaded and issued successfully.');
     }
 }
