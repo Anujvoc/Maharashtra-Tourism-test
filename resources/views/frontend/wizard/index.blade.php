@@ -1,0 +1,974 @@
+@extends('frontend.layouts2.master')
+@section('title', 'My Applications')
+
+@section('content')
+    <section class="section">
+        <div class="section-header">
+            <h1>My Applications</h1>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">All Applications</h3>
+
+                        <a href="{{ route('frontend.application-forms.index') }}" class="ms-auto btn btn-primary button">
+                            <i class="bi bi-plus-circle me-1"></i> New Application
+                        </a>
+                    </div>
+
+                    <div class="card-body">
+                        {{-- Alerts --}}
+                        @if (session('success'))
+                            <div class="alert alert-success">{{ session('success') }}</div>
+                        @endif
+                        @if (session('info'))
+                            <div class="alert alert-info">{{ session('info') }}</div>
+                        @endif
+
+                        {{-- No apps yet --}}
+                        @if ($apps->isEmpty())
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body text-center py-5">
+                                    <div class="display-6 mb-2">👋</div>
+                                    <h5 class="mb-1">No applications yet</h5>
+                                    <p class="text-muted mb-3">Click the button below to start your Registration Forms.</p>
+
+                                    <a href="{{ route('frontend.application-forms.index') }}"
+                                        class="btn btn-primary button">
+                                        <i class="bi bi-rocket-takeoff me-1"></i> Start New Application
+                                    </a>
+                                </div>
+                            </div>
+                        @else
+                            {{-- DataTable 1 --}}
+                            <div class="table-responsive">
+                                <table id="appsTable"
+                                    class="table table-hover table-borderless table-modern table-orange w-100">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Forms</th>
+                                            <th>Registration ID</th>
+                                            <th>Progress</th>
+                                            <th>Current Step</th>
+                                            <th>Status</th>
+                                            <th>Submitted At</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($apps as $app)
+                                            @php
+                                                $progress = $app->progress;
+                                                $pct =
+                                                    $progress['total'] > 0
+                                                        ? intval(($progress['done'] / $progress['total']) * 100)
+                                                        : 0;
+
+                                                $badge =
+                                                    [
+                                                        'draft' => 'secondary',
+                                                        'submitted' => 'warning',
+                                                        'approved' => 'success',
+                                                        'rejected' => 'danger',
+                                                    ][$app->status] ?? 'secondary';
+
+                                                $application_forms = DB::table('application_forms')
+                                                    ->where('id', $app->application_form_id)
+                                                    ->first();
+                                            @endphp
+
+                                            <tr>
+                                                <td>{{ $loop->iteration }}</td>
+
+                                                <td>{{ $application_forms->name ?? '' }}</td>
+
+                                                <td class="fw-semibold">
+                                                    {{ $app->registration_id ?? '—' }}
+                                                </td>
+
+                                                <td style="min-width:150px">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <div class="progress flex-grow-1" style="height:8px;">
+                                                            <div class="progress-bar" role="progressbar"
+                                                                style="width: {{ $pct }}%">
+                                                            </div>
+                                                        </div>
+                                                        <small class="text-muted">
+                                                            {{ $progress['done'] }}/{{ $progress['total'] }}
+                                                        </small>
+                                                    </div>
+                                                </td>
+
+                                                <td>
+                                                    @if ($app->is_apply)
+                                                        <span class="badge text-bg-info fs-1">
+                                                            {{ ucfirst($app->status) }}
+                                                        </span>
+                                                    @else
+                                                        <span class="text-muted">{{ $app->step_label }}</span>
+                                                    @endif
+                                                </td>
+
+                                                <td>
+                                                    @if ($app->is_apply)
+                                                        <button type="button"
+                                                            style="background-color:#055f0e;color:#fff; font-weight:700;border:none;border-radius:8px;padding:.2rem 0.5rem; cursor:pointer;"
+                                                            class="btn btn-sm rounded-pill px-3 py-1 fw-bold">
+                                                            Applied
+                                                        </button>
+                                                    @else
+                                                        <span
+                                                            class="badge text-bg-{{ $badge }}">{{ ucfirst($app->status) }}</span>
+                                                    @endif
+                                                </td>
+
+                                                <td>
+                                                    {{ $app->submitted_at ? $app->submitted_at->format('d M Y, h:i A') : '—' }}
+                                                </td>
+
+                                                <td>
+                                                    @if ($app->status === 'draft')
+                                                        {{-- Resume --}}
+                                                        <a class="btn btn-sm"
+                                                            style="background-color:#fc089f;
+                                                                                                                                                                                              color:#fff;
+                                                                                                                                                                                              font-weight:700;
+                                                                                                                                                                                              border:none;
+                                                                                                                                                                                              border-radius:8px;
+                                                                                                                                                                                              padding:.2rem 0.5rem;
+                                                                                                                                                                                              cursor:pointer;"
+                                                            @if ($app->application_form_id == 9) href="{{ route('industrial.wizard.show', [$app, 'step' => $app->current_step]) }}"
+                                                            @else
+                                                                href="{{ route('wizard.show', [$app, 'step' => $app->current_step]) }}" @endif>
+                                                            <i class="bi bi-play-circle me-1"></i> Resume
+                                                        </a>
+
+                                                        @if ($progress['done'] > 0)
+                                                            {{-- Edit from step 1 --}}
+                                                            <a class="btn btn-sm"
+                                                                style="background-color:#0d01ff;
+                                                                                                                                                                                                                                  color:#fff;
+                                                                                                                                                                                                                                  font-weight:700;
+                                                                                                                                                                                                                                  border:none;
+                                                                                                                                                                                                                                  border-radius:8px;
+                                                                                                                                                                                                                                  padding:.2rem 0.5rem;
+                                                                                                                                                                                                                                  cursor:pointer;"
+                                                                @if ($app->application_form_id == 9) href="{{ route('industrial.wizard.show', [$app, 'step' => 1]) }}" @else
+                                                                href="{{ route('wizard.show', [$app, 'step' => 1]) }}" @endif>
+                                                                <i class="bi bi-pencil-square me-1"></i> Edit
+                                                            </a>
+                                                        @endif
+                                                    @else
+                                                        @if ($app->workflow_status === 'Certificate Generated')
+                                                            <a href="{{ route('applications.certificate.download', ['type' => 'generic-application', 'id' => $app->id]) }}"
+                                                                class="btn btn-sm" target="_blank"
+                                                                style="background-color:#0d6efd; color:#fff;">
+                                                                <i class="bi bi-award-fill me-1"></i> Certificate
+                                                            </a>
+                                                        @else
+                                                            <a href="{{ route('applications.report', $app->id) }}"
+                                                                class="btn btn-sm" target="_blank"
+                                                                style="background-color:#055f0e; color:#fff;">
+                                                                <i class="bi bi-eye me-1"></i> View/Print
+                                                            </a>
+                                                        @endif
+
+                                                        {{-- Remarks Button --}}
+                                                        @if (in_array(strtolower($app->workflow_status ?? $app->status), [
+                                                                'clarification',
+                                                                'returned',
+                                                                'submitted',
+                                                                'applied',
+                                                                'pending',
+                                                            ]))
+                                                            <button type="button"
+                                                                class="btn btn-sm btn-primary ms-1 view-remarks-btn"
+                                                                data-type="generic-application"
+                                                                data-id="{{ $app->id }}"
+                                                                title="View workflow history and remarks">
+                                                                <i class="bi bi-chat-left-text"></i> Remarks
+                                                            </button>
+                                                        @endif
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @endforeach
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- SECOND TABLE (registration_data) --}}
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="table-responsive">
+                                    <table id="apps1Table"
+                                        class="table table-hover table-borderless table-modern table-orange w-100">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Forms</th>
+                                                <th>Registration ID</th>
+                                                <th>Status</th>
+                                                <th>Submitted At</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($registration_data as $app)
+                                                @php
+                                                    // Map statuses to RGB colors
+                                                    $statusColors = [
+                                                        'pending' => 'rgb(108, 117, 125)', // gray
+                                                        'submitted' => 'rgb(255, 193, 7)', // yellow
+                                                        'approved' => 'rgb(25, 135, 84)', // green
+                                                        'rejected' => 'rgb(220, 53, 69)', // red
+                                                    ];
+                                                    $bgColor =
+                                                        $statusColors[strtolower($app->status)] ?? 'rgb(108, 117, 125)';
+
+                                                    // Get form name (fallback to model name)
+                                                    $form = $forms[$app->application_form_id] ?? null;
+                                                    $formName = $form->name ?? class_basename($app->model);
+
+                                                    // Determine route name per model
+                                                    $routeName = null;
+                                                    if (
+                                                        $app->model ===
+                                                        \App\Models\frontend\ApplicationForm\AdventureApplication::class
+                                                    ) {
+                                                        $routeName = 'frontend.applications.adventure.report';
+                                                    } elseif (
+                                                        $app->model ===
+                                                        \App\Models\frontend\ApplicationForm\TourismApartment::class
+                                                    ) {
+                                                        $routeName = 'frontend.applications.tourism.report';
+                                                    } elseif (
+                                                        $app->model ===
+                                                        \App\Models\frontend\ApplicationForm\AgricultureRegistration::class
+                                                    ) {
+                                                        $routeName = 'applications.Agriculture.tourism.report';
+                                                    } elseif (
+                                                        $app->model ===
+                                                        \App\Models\frontend\ApplicationForm\ProvisionalRegistration::class
+                                                    ) {
+                                                        $routeName = 'applications.provisional.show';
+                                                    } elseif (
+                                                        $app->model ===
+                                                        \App\Models\frontend\ApplicationForm\IndustrialRegistration::class
+                                                    ) {
+                                                        $routeName = 'industrial.registration.report';
+                                                    }
+
+                                                    // workflow / status display
+                                                    $workflowStatus = $app->workflow_status ?? null;
+                                                    $appStatus = $app->status ?? 'pending';
+
+                                                    if ($workflowStatus === 'Certificate Generated') {
+                                                        $statusText = 'Final Approved';
+                                                        $statusColor = 'rgb(25, 135, 84)'; // green
+                                                    } elseif ($workflowStatus && $workflowStatus !== 'Pending') {
+                                                        $statusText = $workflowStatus;
+                                                        $statusColor =
+                                                            str_contains(strtolower($workflowStatus), 'approved') ||
+                                                            str_contains(strtolower($workflowStatus), 'forward')
+                                                                ? 'rgb(25, 135, 84)'
+                                                                : 'rgb(255, 193, 7)';
+                                                    } else {
+                                                        $statusText = ucfirst($appStatus);
+                                                        $statusColor = $bgColor;
+                                                    }
+
+                                                    // Determine type slug for remarks
+                                                    $typeSlug = null;
+                                                    if (
+                                                        $app->model ===
+                                                        \App\Models\frontend\ApplicationForm\AdventureApplication::class
+                                                    ) {
+                                                        $typeSlug = 'adventure';
+                                                    } elseif (
+                                                        $app->model ===
+                                                        \App\Models\frontend\ApplicationForm\AgricultureRegistration::class
+                                                    ) {
+                                                        $typeSlug = 'agriculture';
+                                                    } elseif (
+                                                        $app->model ===
+                                                        \App\Models\frontend\ApplicationForm\WomenCenteredTourismRegistration::class
+                                                    ) {
+                                                        $typeSlug = 'women-centered';
+                                                    } elseif (
+                                                        $app->model ===
+                                                        \App\Models\frontend\ApplicationForm\IndustrialRegistration::class
+                                                    ) {
+                                                        $typeSlug = 'industrial';
+                                                    } elseif (
+                                                        $app->model ===
+                                                        \App\Models\frontend\ApplicationForm\ProvisionalRegistration::class
+                                                    ) {
+                                                        $typeSlug = 'provisional';
+                                                    } elseif (
+                                                        $app->model ===
+                                                        \App\Models\frontend\ApplicationForm\EligibilityRegistration::class
+                                                    ) {
+                                                        $typeSlug = 'eligibility';
+                                                    } elseif (
+                                                        $app->model ===
+                                                        \App\Models\frontend\ApplicationForm\StampDutyApplication::class
+                                                    ) {
+                                                        $typeSlug = 'stamp-duty';
+                                                    } elseif (
+                                                        $app->model ===
+                                                        \App\Models\frontend\ApplicationForm\TourismApartment::class
+                                                    ) {
+                                                        $typeSlug = 'tourism-apartment';
+                                                    } elseif (
+                                                        $app->model ===
+                                                        \App\Models\frontend\ApplicationForm\CaravanRegistration::class
+                                                    ) {
+                                                        $typeSlug = 'caravan';
+                                                    } elseif (
+                                                        $app->model ===
+                                                        \App\Models\frontend\ApplicationForm\Application::class
+                                                    ) {
+                                                        $typeSlug = 'generic-application';
+                                                    }
+                                                @endphp
+
+                                                <tr>
+                                                    <td>{{ $loop->iteration }}</td>
+                                                    <td>{{ $formName }}</td>
+                                                    <td class="fw-semibold">{{ $app->registration_id ?? '—' }}</td>
+
+                                                    <td>
+                                                        {{-- Status Badge --}}
+                                                        <button type="button"
+                                                            class="btn btn-sm rounded-pill px-3 py-1 fw-bold"
+                                                            style="background-color: {{ $statusColor }};
+                                                                                                                                   color: #fff;
+                                                                                                                                   font-weight: 700;
+                                                                                                                                   border: none;
+                                                                                                                                   border-radius: 8px;">
+                                                            {{ $statusText }}
+                                                        </button>
+
+                                                        {{-- Remarks button: show only for clarification/returned/submitted AND
+                                                        NOT certificate generated --}}
+                                                        @if (
+                                                            $typeSlug &&
+                                                                $workflowStatus !== 'Certificate Generated' &&
+                                                                in_array(strtolower($appStatus), ['clarification', 'returned', 'submitted']))
+                                                            <button type="button"
+                                                                class="btn btn-sm btn-primary ms-2 view-remarks-btn"
+                                                                data-type="{{ $typeSlug }}"
+                                                                data-id="{{ $app->id }}"
+                                                                title="View workflow history and remarks">
+                                                                <i class="bi bi-chat-left-text"></i> Remarks
+                                                            </button>
+                                                        @endif
+                                                    </td>
+
+                                                    <td>
+                                                        {{ $app->submitted_at ? $app->submitted_at->format('d M Y, h:i A') : '—' }}
+                                                    </td>
+
+                                                    <td>
+                                                        {{-- STAMP DUTY APPLICATION --}}
+                                                        @if ($app->model === \App\Models\frontend\ApplicationForm\StampDutyApplication::class)
+                                                            @php
+                                                                $applicationId = $app->id;
+                                                                $application = \App\Models\frontend\ApplicationForm\StampDutyApplication::find(
+                                                                    $applicationId,
+                                                                );
+                                                            @endphp
+
+                                                            @if (strtolower($workflowStatus ?? '') === 'certificate generated')
+                                                                {{-- ✅ Download Certificate button --}}
+                                                                <a href="{{ route('applications.certificate.download', ['type' => $typeSlug, 'id' => $app->id]) }}"
+                                                                    class="btn btn-sm rounded-pill mb-1" target="_blank"
+                                                                    style="background-color:#28a745; color:#fff; font-weight: 600;">
+                                                                    <i class="bi bi-download me-1"></i> Download Certificate
+                                                                </a>
+                                                            @endif
+
+                                                            @if ($applicationId)
+                                                                @if ($app->status === 'draft')
+                                                                    {{-- Resume --}}
+                                                                    <a class="btn btn-sm"
+                                                                        style="background-color:#fc089f;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          color:#fff;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          font-weight:700;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          border:none;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          border-radius:8px;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          padding:.2rem 0.6rem;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          cursor:pointer;"
+                                                                        href="{{ route('stamp-duty.wizard', [
+                                                                            'id' => $app->application_form_id,
+                                                                            'step' => $application->current_step,
+                                                                            'application' => $app->id ?? null,
+                                                                        ]) }}">
+                                                                        <i class="bi bi-play-circle me-1"></i> Resume
+                                                                    </a>
+
+                                                                    {{-- Edit from Step 1 --}}
+                                                                    <a class="btn btn-sm"
+                                                                        style="background-color:#0d01ff;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          color:#fff;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          font-weight:700;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          border:none;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          border-radius:8px;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          padding:.2rem 0.6rem;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          cursor:pointer;"
+                                                                        href="{{ route('stamp-duty.wizard', [
+                                                                            'id' => $app->application_form_id,
+                                                                            'step' => 1,
+                                                                            'application' => $app->id ?? null,
+                                                                        ]) }}">
+                                                                        <i class="bi bi-pencil-square me-1"></i> Edit
+                                                                    </a>
+                                                                @else
+                                                                    {{-- Submitted/Approved/Rejected => View/Print --}}
+                                                                    <a href="{{ route('stamp-duty.reports', ['id' => $app->id]) }}"
+                                                                        class="btn btn-sm" target="_blank"
+                                                                        style="background-color:#055f0e; color:#fff;">
+                                                                        <i class="bi bi-eye me-1"></i> View/Print
+                                                                    </a>
+                                                                @endif
+                                                            @else
+                                                                <span class="text-muted small">No Active</span>
+                                                            @endif
+
+                                                            {{-- PROVISIONAL REGISTRATION --}}
+                                                        @elseif ($app->model === \App\Models\frontend\ApplicationForm\ProvisionalRegistration::class)
+                                                            @php
+                                                                $applicationId = $app->application_form_id;
+
+                                                                if ($applicationId) {
+                                                                    $applicationIdtrue = \App\Models\frontend\ApplicationForm\ProvisionalRegistration::where(
+                                                                        'application_form_id',
+                                                                        $app->application_form_id,
+                                                                    )->where( 'is_apply', 0)
+                                                                    ->first();
+                                                                    // dd($applicationId);
+                                                                }
+
+                                                            @endphp
+
+                                                            @if (strtolower($workflowStatus ?? '') === 'certificate generated')
+                                                                {{-- ✅ Download Certificate button --}}
+                                                                <a href="{{ route('applications.certificate.download', ['type' => $typeSlug, 'id' => $app->id]) }}"
+                                                                    class="btn btn-sm rounded-pill mb-1" target="_blank"
+                                                                    style="background-color:#28a745; color:#fff; font-weight: 600;">
+                                                                    <i class="bi bi-download me-1"></i> Download
+                                                                    Certificate
+                                                                </a>
+                                                            @endif
+                                                            @if ($applicationId)
+                                                                @if ($app->status === 'draft')
+                                                                    {{-- Resume --}}
+                                                                    <a class="btn btn-sm"
+                                                                        style="background-color:#fc089f;
+                                                                        color:#fff;
+                                                                        border:none;
+                                                                        border-radius:8px;
+                                                                        padding:.2rem 0.6rem;
+                                                                        cursor:pointer;"
+                                                                        href="{{ route('provisional.wizard.show', [
+                                                                            // 'application' => $applicationId,
+                                                                            'step' => $app->current_step ?? 1,
+                                                                        ]) }}">
+                                                                        <i class="bi bi-play-circle me-1"></i> Resume
+                                                                    </a>
+
+                                                                    {{-- Edit from Step 1 --}}
+                                                                    <a class="btn btn-sm"
+                                                                        style="background-color:#0d01ff;color:#fff;font-weight:700;border:none;border-radius:8px;padding:.2rem 0.6rem;cursor:pointer;"
+                                                                        href="{{ route('provisional.wizard.show', [
+                                                                            // 'application' => $applicationId,
+                                                                            'step' => 1,
+                                                                        ]) }}">
+                                                                        <i class="bi bi-pencil-square me-1"></i> Edit
+                                                                    </a>
+                                                                @else
+                                                                    {{-- Submitted/Approved/Rejected => View/Print --}}
+                                                                    <a href="{{ route('applications.provisional.show', [
+                                                                        'application' => $app->id,
+                                                                    ]) }}"
+                                                                        class="btn btn-sm" target="_blank"
+                                                                        style="background-color:#055f0e; color:#fff;">
+                                                                        <i class="bi bi-eye me-1"></i> View/Print
+                                                                    </a>
+                                                                @endif
+                                                            @else
+                                                                <span class="text-muted small">No linked application</span>
+                                                            @endif
+
+                                                            {{-- OTHER MODELS --}}
+                                                        @else
+                                                            @php
+                                                                $routeName = null;
+
+                                                                if (
+                                                                    $app->model ===
+                                                                    \App\Models\frontend\ApplicationForm\AdventureApplication::class
+                                                                ) {
+                                                                    $routeName =
+                                                                        'frontend.applications.adventure.report';
+                                                                } elseif (
+                                                                    $app->model ===
+                                                                    \App\Models\frontend\ApplicationForm\TourismApartment::class
+                                                                ) {
+                                                                    $routeName = 'frontend.applications.tourism.report';
+                                                                } elseif (
+                                                                    $app->model ===
+                                                                    \App\Models\frontend\ApplicationForm\AgricultureRegistration::class
+                                                                ) {
+                                                                    $routeName =
+                                                                        'applications.Agriculture.tourism.report';
+                                                                } elseif (
+                                                                    $app->model ===
+                                                                    \App\Models\frontend\ApplicationForm\IndustrialRegistration::class
+                                                                ) {
+                                                                    $routeName = 'industrial.registration.report';
+                                                                } elseif (
+                                                                    $app->model ===
+                                                                    \App\Models\frontend\ApplicationForm\EligibilityRegistration::class
+                                                                ) {
+                                                                    $routeName = 'eligibility-registrations.show';
+                                                                } elseif (
+                                                                    $app->model ===
+                                                                    \App\Models\frontend\ApplicationForm\WomenCenteredTourismRegistration::class
+                                                                ) {
+                                                                    // $routeName = 'applications.women.tourism.report';
+                                                                } elseif (
+                                                                    $app->model ===
+                                                                    \App\Models\frontend\ApplicationForm\CaravanRegistration::class
+                                                                ) {
+                                                                    // $routeName = 'applications.caravan.report';
+                                                                }
+                                                            @endphp
+
+                                                            {{-- @if ($workflowStatus === 'Certificate Generated') --}}
+                                                            @if (strtolower($workflowStatus ?? '') === 'certificate generated')
+                                                                {{-- ✅ Download Certificate button --}}
+                                                                <a href="{{ route('applications.certificate.download', ['type' => $typeSlug, 'id' => $app->id]) }}"
+                                                                    class="btn btn-sm rounded-pill mb-1" target="_blank"
+                                                                    style="background-color:#28a745; color:#fff; font-weight: 600;">
+                                                                    <i class="bi bi-download me-1"></i> Download
+                                                                    Certificate
+                                                                </a>
+                                                            @elseif ($routeName)
+                                                                <a href="{{ route($routeName, $app->id) }}"
+                                                                    class="btn btn-sm rounded-pill" target="_blank"
+                                                                    style="background-color:#055f0e; color:#fff;">
+                                                                    <i class="bi bi-eye me-1"></i> View/Print
+                                                                </a>
+                                                            @else
+                                                                <a href="#"
+                                                                    class="btn btn-sm btn-secondary disabled">No Action</a>
+                                                            @endif
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        {{-- Remarks Modal --}}
+
+
+    </section>
+@endsection
+
+@push('styles')
+    {{-- DataTables CSS --}}
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+
+    <style>
+        :root {
+            --brand-500: #ff6600;
+            --brand-600: #e65c00;
+            --brand-100: #ffe0cc;
+        }
+
+        .btn-primary {
+            background: var(--brand-500);
+            border-color: var(--brand-500);
+        }
+
+        .btn-primary:hover {
+            background: var(--brand-600);
+            border-color: var(--brand-600);
+        }
+
+        .progress-bar {
+            background: var(--brand-500);
+        }
+
+        table.table-modern thead {
+            background-color: #ff6600 !important;
+        }
+
+        table.table-modern thead th {
+            color: #fff !important;
+            font-weight: 700 !important;
+            border: none !important;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            text-align: left;
+        }
+
+        .table-modern tbody tr:hover {
+            background: #fff4e6;
+        }
+
+        .table-modern td,
+        .table-modern th {
+            vertical-align: middle;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: #ff6600 !important;
+            color: #fff !important;
+            border: none !important;
+            border-radius: 6px;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: #e65c00 !important;
+            color: #fff !important;
+        }
+
+        .dataTables_wrapper .dataTables_filter input {
+            border: 1px solid var(--brand-100) !important;
+            border-radius: .5rem !important;
+            padding: .4rem .6rem !important;
+            outline: none !important;
+        }
+
+        .dataTables_wrapper .dataTables_filter label {
+            font-weight: 600;
+            color: #444;
+        }
+
+        .dataTables_wrapper .dataTables_length select {
+            border-radius: .5rem;
+            border: 1px solid #ddd;
+            padding: .2rem .4rem;
+        }
+    </style>
+@endpush
+<div class="modal fade" id="remarksModal" tabindex="-1" aria-labelledby="remarksModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header"
+                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <h5 class="modal-title" id="remarksModalLabel">
+                    <i class="bi bi-chat-left-text me-2"></i>
+                    Request Clarification (To User)
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="remarksLoader" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Loading remarks...</p>
+                </div>
+                <div id="remarksContent" class="d-none">
+                    <div class="alert alert-info mb-3">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Instructions:</strong> Please review the remarks below and make necessary
+                        corrections to your application.
+                    </div>
+                    <ul class="list-group list-group-flush" id="remarksList">
+                        {{-- Filled via JS --}}
+                    </ul>
+                </div>
+                <div id="remarksEmpty" class="d-none text-center py-3 text-muted">
+                    No remarks found.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i> Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+@push('scripts')
+    {{-- jQuery & DataTables JS --}}
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).ready(function() {
+            // ✅ Init both tables correctly
+            $('#appsTable, #apps1Table').DataTable({
+                responsive: true,
+                pageLength: 5,
+                lengthMenu: [5, 10, 25, 50],
+                order: [
+                    [0, 'asc']
+                ],
+                language: {
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search applications...",
+                    lengthMenu: "_MENU_ per page",
+                    info: "Showing _START_ to _END_ of _TOTAL_ applications",
+                    paginate: {
+                        previous: "‹",
+                        next: "›"
+                    }
+                },
+                columnDefs: [{
+                    orderable: false,
+                    targets: -1 // last column (Action) not sortable for both tables
+                }]
+            });
+        });
+
+        // Handle View Remarks
+        $(document).on('click', '.view-remarks-btn', function() {
+            var type = $(this).data('type');
+            var id = $(this).data('id');
+            var modal = new bootstrap.Modal(document.getElementById('remarksModal'));
+
+            $('#remarksLoader').removeClass('d-none');
+            $('#remarksContent, #remarksEmpty').addClass('d-none');
+            $('#remarksList').empty();
+            $('#rejectedDocsSection').remove(); // Clear previous docs
+
+            modal.show();
+
+            $.ajax({
+                url: '/applications/' + type + '/' + id + '/remarks',
+                method: 'GET',
+                success: function(response) {
+                    $('#remarksLoader').addClass('d-none');
+                    let hasContent = false;
+
+                    // L                        ogs
+                    if (response.logs && response.logs.length > 0) {
+                        hasContent = true;
+                        var html = '';
+                        response.logs.forEach(function(log) {
+                            var badgeClass = log.status === 'Approved' ?
+                                'text-success' :
+                                (log.status === 'Rejected' ?
+                                    'text-danger' :
+                                    'text-warning');
+
+                            html += '<li class="list-group-item">';
+                            html += '<div class="d-flex justify-content-between">';
+                            html += '<strong class="' + badgeClass + '">' + log.status + ' (' +
+                                log.stage + ')</strong>';
+                            html += '<small class="text-muted">' + log.created_at + '</small>';
+                            html += '</div>';
+                            html += '<p class="mb-0 mt-1">' + (log.remark || 'No remark') +
+                                '</p>';
+                            html += '</li>';
+                        });
+                        $('#remarksList').html(html);
+                    }
+
+                    // Rejected Docs
+                    if (response.rejected_docs && response.rejected_docs.length > 0) {
+                        hasContent = true;
+                        let docsHtml = `
+                                                <div id="rejectedDocsSection" class="mt-4">
+                                                    <h6 class="text-danger fw-bold border-bottom pb-2 mb-3">
+                                                        <i class="bi bi-exclamation-octagon me-1"></i> Rejected Documents (Action Required)
+                                                    </h6>
+                                                    <div class="table-responsive">
+                                                        <table class="table table-bordered table-sm">
+                                                            <thead class="table-light">
+                                                                <tr>
+                                                                    <th>Document</th>
+                                                                    <th>Rejection Remark</th>
+                                                                    <th>Action</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                            `;
+
+                        response.rejected_docs.forEach(doc => {
+                            let actionBtn = '';
+                            if (doc.is_reuploaded) {
+                                actionBtn = `
+                                                    <div class="mb-2">
+                                                        <span class="badge bg-warning text-dark">Updated - Verification Pending</span>
+                                                    </div>
+                                                    <button class="btn btn-sm btn-outline-primary btn-upload-modal mb-1 w-100"
+                                                        data-id="${doc.id}" data-label="${doc.label}">
+                                                        <i class="bi bi-arrow-repeat"></i> Upload Again
+                                                    </button>
+                                                    <div class="mt-1">
+                                                        <a href="/storage/${doc.file_path}" target="_blank" class="small text-decoration-none">View Updated File</a>
+                                                    </div>
+                                                `;
+                            } else {
+                                actionBtn = `
+                                                    <button class="btn btn-sm btn-primary btn-upload-modal w-100"
+                                                        data-id="${doc.id}" data-label="${doc.label}">
+                                                        Upload New
+                                                    </button>
+                                                `;
+                            }
+
+                            docsHtml += `
+                                                    <tr>
+                                                        <td>
+                                                            ${doc.label}
+                                                        </td>
+                                                        <td class="text-danger small">${doc.remark}</td>
+                                                        <td>${actionBtn}</td>
+                                                    </tr>
+                                                `;
+                        });
+
+                        docsHtml += `</tbody></table></div></div>`;
+                        $('#remarksContent').append(docsHtml);
+                    }
+
+                    if (hasContent) {
+                        $('#remarksContent').removeClass('d-none');
+                    } else {
+                        $('#remarksEmpty').removeClass('d-none');
+                    }
+                },
+                error: function() {
+                    $('#remarksLoader').addClass('d-none');
+                    $('#remarksEmpty').text('Error loading remarks.').removeClass('d-none');
+                }
+            });
+        });
+
+        // Handle Upload Button Click inside Remarks Modal
+        $(document).on('click', '.btn-upload-modal', function() {
+            let docId = $(this).data('id');
+            let docLabel = $(this).data('label');
+
+            $('#upload-doc-id').val(docId);
+            $('#upload-doc-label').text(docLabel);
+            $('#upload-file-input').val('');
+
+            // Open Upload Modal (and hide Remarks modal if needed, or stack them)
+            // Bootstrap supports stacked modals usually, but let's be safe
+            // We'll just open it on top.
+            var uploadModal = new bootstrap.Modal(document.getElementById('uploadDocModal'));
+            uploadModal.show();
+        });
+
+        // Handle File Upload Confirm
+        $('#confirm-doc-upload').click(function() {
+            let btn = $(this);
+            let docId = $('#upload-doc-id').val();
+            let fileInput = document.getElementById('upload-file-input');
+
+            if (fileInput.files.length === 0) {
+                Swal.fire('Error', 'Please select a file', 'error');
+                return;
+            }
+
+            let formData = new FormData();
+            formData.append('document_file', fileInput.files[0]);
+            formData.append('_token', '{{ csrf_token() }}');
+
+            btn.prop('disabled', true).text('Uploading...');
+
+            $.ajax({
+                url: "{{ url('user/documents') }}/" + docId + "/update",
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(res) {
+                    btn.prop('disabled', false).text('Upload');
+                    if (res.success) {
+                        try {
+                            const modalEl = document.getElementById('uploadDocModal');
+                            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                            if (modalInstance) {
+                                modalInstance.hide();
+                            } else {
+                                // Fallback if instance not found but modal is open (rare)
+                                $(modalEl).modal('hide');
+                            }
+                        } catch (e) {
+                            console.error("Error hiding modal:", e);
+                            $('#uploadDocModal').removeClass('show').css('display', 'none');
+                            $('.modal-backdrop').remove();
+                        }
+
+                        // Ideally reload remarks or just close everything
+                        Swal.fire({
+                            title: 'Uploaded!',
+                            text: 'Document has been uploaded successfully.',
+                            icon: 'success',
+                            confirmButtonColor: '#ff6600'
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Error', res.error || 'Upload failed', 'error');
+                    }
+                },
+                error: function(err) {
+                    btn.prop('disabled', false).text('Upload');
+                    console.error(err);
+                    Swal.fire('Error', 'Something went wrong during upload.', 'error');
+                }
+            });
+        });
+    </script>
+@endpush
+
+{{-- Upload Document Modal --}}
+<div class="modal fade" id="uploadDocModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Re-upload Document</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Uploading new file for: <strong id="upload-doc-label" class="text-primary"></strong></p>
+                <input type="hidden" id="upload-doc-id">
+                <div class="mb-3">
+                    <label class="form-label">Select File (PDF/Image, max 5MB)</label>
+                    <input type="file" class="form-control" id="upload-file-input">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirm-doc-upload">Upload</button>
+            </div>
+        </div>
+    </div>
+</div>
