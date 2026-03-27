@@ -137,7 +137,7 @@
                         <div class="error" id="registration_no_error">@error('registration_no') {{ $message }} @enderror</div>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label required">Date</label>
+                        <label class="form-label required">Registration Date</label>
                         <input type="date"
                         name="application_date"
                         class="form-control @error('application_date') is-invalid @enderror"

@@ -11,6 +11,41 @@ use App\Models\District;
 
 class DivisionController extends Controller
 {
+   public function division(Request $request){
+    $divisions = Divisions::orderBy('name')->get();
+            if (!Divisions::exists()) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'No Division found.'
+                    ]);
+                }
+                
+                return response()->json([
+                    'status' => true,
+                    'message' => 'All Divisions.',
+                    'data' => $divisions,
+                ]);
+   }
+   public function get_Region_District($id)
+    {
+
+        $division = Divisions::where('id', $id)->first();
+        if (!$division) {
+            return response()->json(['error' => 'Division not found'], 404);
+        }
+        $districtIds = json_decode($division->districts, true);
+
+        if (!is_array($districtIds)) {
+            return response()->json(['error' => 'Invalid district data'], 400);
+        }
+
+        $districts = District::whereIn('id', $districtIds)
+            ->select('id', 'name')
+            ->get();
+
+        return response()->json($districts);
+    }
+    
    public function index()
     {
         $divisions = Divisions::latest()->paginate(15);

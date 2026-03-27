@@ -40,6 +40,11 @@ class EligibilityRegistration extends Model
         'district_id',
         'current_stage',
         'workflow_status',
+
+        'current_desk_number',
+        'form_current_status',
+        
+
     ];
 
     protected $casts = [

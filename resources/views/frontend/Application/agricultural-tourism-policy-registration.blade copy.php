@@ -526,7 +526,7 @@
                                                                    class="form-control file-input" data-preview="preview_declaration" required>
                                                         </div>
                                                         <div id="preview_declaration" class="file-preview">
-                                                            <a href="#" target="_blank" class="text-primary">Download Format</a>
+                                                            <a href="{{ asset('frontend/Agro-tourism.docx') }}" target="_blank" class="text-primary">Download Format</a>
                                                         </div>
                                                     </td>
 

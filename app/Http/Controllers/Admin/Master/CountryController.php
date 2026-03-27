@@ -17,8 +17,26 @@ class CountryController extends Controller
     }
 
 
-public function index()
+public function index(Request $request)
 {
+    if ($request->is('api/*')) {
+        $countries = \App\Models\Country::where('is_active', true)
+                    ->orderBy('name', 'asc')
+                    ->get();
+        if ($countries->isEmpty()) {
+        return response()->json([
+            'status' => false,
+            'message' => 'No active country found.'
+        ]);
+    }
+    return response()->json([
+        'status' => true,
+        'message' => 'Country list.',
+        'data' => $countries
+    ]);  
+
+    }
+   
     $perPage = (int) request('per_page', 10);
     $q = trim((string) request('q', ''));
 

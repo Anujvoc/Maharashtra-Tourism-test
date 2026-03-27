@@ -363,6 +363,7 @@ class ApplicationFormsController extends Controller
      */
     public function report($type, $id)
     {
+        
         $mapping = [
             'adventure' => AdventureApplication::class,
             'agriculture' => AgricultureRegistration::class,
@@ -395,7 +396,7 @@ class ApplicationFormsController extends Controller
             ]);
 
             $qrCode = 1;
-            $logoPath = public_path('frontend/mah-logo-300x277.png');
+            $logoPath = public_path('backend/mah-logo-300x277.png');
             $logoBase64 = null;
 
             if (file_exists($logoPath)) {

@@ -1,4 +1,4 @@
-@extends('admin.layouts.app')
+@extends('backend.layouts.app')
 
 @section('title', 'District')
 
@@ -7,49 +7,96 @@
 
 @section('content')
 <main class="main-wrapper">
-  <div class="main-content">
-    <!--breadcrumb-->
-    <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
-      <div class="breadcrumb-title pe-3">District</div>
-      <div class="ps-3">
-        <nav aria-label="breadcrumb">
-          <ol class="breadcrumb mb-0 p-0">
-            <li class="breadcrumb-item"><a href="javascript:;"><i class="bx bx-home-alt"></i></a></li>
-            <li class="breadcrumb-item active" aria-current="page">Index</li>
-          </ol>
-        </nav>
-      </div>
+
+    <div class=" container-fluid px-4 mt-4">
+    <div class="main-content">
+      <!--breadcrumb-->
+       <div class="bg-image" style="min-height: 100px;">
+          <div class="bg-image" style="background-image: url('{{ asset('backend/mah-logo-300x277.png') }}'); background-size: cover; background-position: center; min-height: 100px;"> 
+
+        <div class="bg-gd-white-op-l">
+
+            <div class="d-flex justify-content-between align-items-center content py-3">
+
+                <h3 class="text-black-75 text-center text-sm-start mb-0">
+
+                    Districts Management
+
+                </h3>
+
+                <nav aria-label="breadcrumb">
+
+                    <ol class="breadcrumb  px-3 py-2 mb-0">
+
+                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+
+                        <li class="breadcrumb-item active" aria-current="page">District</li>
+
+                    </ol>
+
+                </nav>
+
+            </div>
+
+        </div>
+
     </div>
 
-    {{-- Search + Buttons --}}
-    <div class="row g-3">
-      <div class="col-auto">
-        <div class="position-relative">
-          <form method="GET">
-            <input class="form-control ps-5" type="search" name="q" value="{{ $q ?? '' }}" placeholder="Search District or State...">
-            <span class="material-icons-outlined position-absolute ms-3 translate-middle-y start-0 top-50 fs-5">search</span>
-          </form>
-        </div>
+<div class="card shadow-sm border-0 mb-4">
+  <div class="card-body">
+
+    <div class="row align-items-center g-3">
+
+  
+      <div class="col-lg-5 col-md-6">
+        <form method="GET">
+          <div class="position-relative">
+            <input 
+              type="search" 
+              name="q" 
+              value="{{ $q ?? '' }}" 
+              class="form-control rounded-pill ps-5"
+              placeholder="Search country..."
+            >
+            <span class="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted">
+              <i class="bi bi-search"></i>
+            </span>
+          </div>
+        </form>
       </div>
 
-      <div class="col-auto ms-auto">
-        <div class="d-flex align-items-center gap-2">
-          <button class="btn btn-filter px-4" type="button">
-            <i class="bi bi-box-arrow-right me-2"></i>Export
+      {{-- 
+      <!-- Buttons -->
+      <div class="col-lg-4 col-md-6 text-md-end">
+        <div class="d-flex gap-2 justify-content-md-end flex-wrap">
+
+          <button class="btn btn-outline-primary rounded-pill px-3">
+            <i class="bi bi-box-arrow-down me-1"></i> Export
           </button>
-          <a href="{{ route('admin.master.districts.create') }}" class="btn btn-primary px-4">
-            <i class="bi bi-plus-lg me-2"></i>Add District
+
+          <a href="{{ route('admin.master.districts.create') }}" class="btn btn-primary rounded-pill px-3">
+            <i class="bi bi-plus-lg me-1"></i> Add District
           </a>
+
         </div>
       </div>
+--}}
     </div>
+
+  </div>
+</div>
+
+
 
     <div class="card mt-2">
       <div class="card-body">
-        <div class="table-responsive mt-2">
-          <table id="example" class="table table-striped table-bordered align-middle">
+        	<div class="block-content block-content-full overflow-x-auto">
+
+                    <table class="table table-bordered table-striped table-vcenter js-dataTable-buttons" id="" style="width:100%">
+
             <thead>
               <tr>
+                   <th class="text-center" style="width: 40px;">#</th>
                 <th>District Name</th>
                 <th>State</th>
                 <th>Country</th>
@@ -58,8 +105,9 @@
               </tr>
             </thead>
             <tbody>
-              @forelse($districts as $district)
+              @forelse($districts as $key => $district)
                 <tr>
+                  <td>{{ $key + 1 }}</td>
                   <td>{{ $district->name }}</td>
                   <td>{{ $district->state->name ?? '-' }}</td>
                   <td>{{ $district->state->country->name ?? '-' }}</td>

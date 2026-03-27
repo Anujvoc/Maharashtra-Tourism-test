@@ -88,6 +88,8 @@
 
             </p>
 
+           
+
             <form id="step5Form"
                   method="POST"
                   action="{{ route('stamp-duty.wizard.store', ['step' => 5]) }}"

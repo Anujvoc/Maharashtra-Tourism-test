@@ -220,7 +220,10 @@
           </div>
           <div class="col-6">
             <label for="guestsHosted" class="form-label">
-              <i class="bi bi-people form-icon"></i> Guests hosted till March {{ now()->year }}?
+              @php
+              $tillMarchYear = now()->month > 3 ? now()->year : now()->year - 1;
+              @endphp              
+              <i class="bi bi-people form-icon"></i> Guests hosted till March {{ $tillMarchYear ?? now()->year }}?
             </label>
             <input type="number"
                    class="form-control @error('guests_till_march') is-invalid @enderror"

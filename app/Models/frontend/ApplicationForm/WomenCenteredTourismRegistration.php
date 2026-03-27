@@ -22,6 +22,7 @@ class WomenCenteredTourismRegistration extends Model
         
         'region_id',
         'district_id',
+        'is_maitri',
 
         'email',
         'mobile',

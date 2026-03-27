@@ -20,9 +20,13 @@ use App\Models\Admin\master\Enterprise;
 use App\Models\Admin\master\Divisions;
 use Illuminate\Database\QueryException;
 use App\Models\District;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Exception;
-
+use App\Models\frontend\Api\ApplicationMovement;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 class AgricultureRegistrationController extends Controller
 {
     /**
@@ -167,13 +171,46 @@ class AgricultureRegistrationController extends Controller
         return view('frontend.Application.AgricultureApplication.reports', $data);
     }
 
+    public function AgriculturalTourismForm()
+    {
+        
+           $application_form = ApplicationForm::where('is_active', 1)
+        ->where('slug','agricultural-tourism-policy-registration')
+        ->first();
+        if(!$application_form){
+            return response()->json([
+                'status' => false,
+                'message' => 'No Available Application Forms.'
+            ], 400);
+        } else {
+            return response()->json([
+                'status' => true,
+                'message' => 'Agricultural Tourism Policy Registration Forms.',
+                'data' => $application_form,
+            ]);
+        }
+        
+    }
+
 
     public function store(Request $request)
     {
+        if ($request->is('api/*')) {
+        $form = ApplicationForm::where('is_active', 1)
+            ->where('slug', $request->slug)
+            ->first();
+             if (!$form) {
+            return response()->json([
+            'status' => false,
+            'message' => 'Invalid Application type provided.'
+        ], 400);
+        }
+        }
+   DB::beginTransaction();
         try {
-            $request->validate([
-                'email'       => 'required|email',
-                'mobile'      => 'required|string|max:15',
+             $validator = Validator::make($request->all(), [
+                'email' => 'required|email|unique:users,email',
+                'mobile' => 'required|string|max:10|regex:/^[6-9][0-9]{9}$/',
                 'applicant_name' => 'required|string|max:255',
                 'center_name' => 'required|string|max:255',
                 'applicant_address' => 'required|string',
@@ -187,6 +224,60 @@ class AgricultureRegistrationController extends Controller
                 'file_food_security_licence' => 'required|file|max:5120',
                 'file_declaration_form' => 'required|file|max:5120',
             ]);
+
+            if ($request->is('api/*')) {
+               if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Validation error',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+        }else{
+            if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }}
+
+
+        if ($request->is('api/*')) {
+                $regId = $this->generateUniqueRegistrationId();
+                $user = User::create([
+                'name' => $request->applicant_name,
+                'username' => $request->applicant_name,
+                'registration_id' => $regId,
+                'image' => null,
+                'phone' => $request->mobile ?? null,
+                'email' => $request->email ?? null,
+                'role' => 'user',
+                'status' => 'active',
+                'email_verified_at' => now(),
+                'phone_verified_at' => now(),
+                'is_email_verified' => true,
+                'is_phone_verified' => true,
+                'is_aadhar_verified' => false,
+                'password' => Hash::make($request->mobile),
+                'aadhar' => $request->aadhar_no ?? null,
+            ]);
+
+              if (!$user) {
+                return response()->json([
+                'status' => false,
+                'message' => 'Failed to create user'
+                ], 500);
+              }
+
+            }
+
+              if ($request->is('api/*')) {
+                $UserID = $user->id;
+                $application_form_id = $form->id;
+                $is_maitri = 1;
+              }else{
+                $UserID =  Auth::id();
+                $is_maitri = 0;
+              }
 
             $data = $request->only([
                 'email',
@@ -202,10 +293,11 @@ class AgricultureRegistrationController extends Controller
                 'center_started_on',
             ]);
 
-            $data['user_id']  = Auth::id();
+            $data['user_id']  = $UserID;
             $data['status']   = 'submitted';
-            $data['application_form_id'] = $request->id;
+            $data['application_form_id'] = $request->id ?? $application_form_id;
             $data['is_apply'] = true;
+            $data['is_maitri'] = $is_maitri;
             $data['submitted_at'] = now();
 
             $boolFields = [
@@ -264,7 +356,26 @@ class AgricultureRegistrationController extends Controller
                 }
             }
 
-            AgricultureRegistration::create($data);
+          $registration = AgricultureRegistration::create($data);
+
+            $movement = ApplicationMovement::create([
+            'application_id' => $registration->id,
+            'desk_number' => 1,
+            'officer_name' => 'Clerk',
+            'action' => 'Submitted',
+            'action_datetime' => now(),
+            'remarks'     => 'submitted'
+        ]);
+
+          DB::commit();
+
+        if ($request->is('api/*')) {
+            return response()->json([
+            'status' => true,
+            'message' => 'Your registration has been submitted successfully!',
+            'application_id' => $registration->registration_id ?? null,
+            ]);
+        }
 
             return redirect()
                 ->route('applications.index')
@@ -273,10 +384,26 @@ class AgricultureRegistrationController extends Controller
             Log::error('AgricultureRegistration Store Error: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
             ]);
+            if ($request->is('api/*')) {
+            return response()->json([
+                    'status' => false,
+                    'message' => 'There was an error submitting your registration',
+                    'errors' => $e->getMessage()
+                ], 422);
+            }
             return back()
                 ->withInput()
                 ->with('error', 'Something went wrong while submitting your application. Please try again or contact support.');
         }
+    }
+
+    protected function generateUniqueRegistrationId($prefix = 'MV')
+    {
+    do {
+        $id = strtoupper($prefix . '-' . Str::upper(Str::random(8)));
+    } while (User::where('registration_id', $id)->exists());
+    
+    return $id;
     }
 
     public function show(string $id)

@@ -8,7 +8,9 @@
   <meta name="csrf-token" content="{{ csrf_token() }}"/>
 
   {{-- Favicon (your provided PNG) --}}
-  <link rel="icon" href="https://maharashtratourism.gov.in/wp-content/uploads/2025/01/mah-logo-300x277.png" sizes="32x32" type="image/png">
+  {{-- <link rel="icon" href="https://maharashtratourism.gov.in/wp-content/uploads/2025/01/mah-logo-300x277.png" sizes="32x32" type="image/png"> --}}
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('backend/mah-logo-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('backend/mah-logo-16x16.png') }}">
 
   {{-- Bootstrap 5 --}}
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"

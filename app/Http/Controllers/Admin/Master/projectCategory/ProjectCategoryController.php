@@ -81,7 +81,7 @@ class ProjectCategoryController extends Controller implements HasMiddleware
 
         ->addColumn('units_badge', function ($row) {
 
-    $unitNames = $row->unitNames(); // returns collection of names
+        $unitNames = $row->unitNames(); // returns collection of names
 
     if ($unitNames->isEmpty()) {
         return '<span class="badge bg-secondary">No Units</span>';

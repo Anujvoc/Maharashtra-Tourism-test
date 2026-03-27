@@ -27,6 +27,7 @@ class ProvisionalRegistration extends Model
         'application_category',
         'region_id',
         'district_id',
+        'is_maitri',
         // Step 2
         'site_address',
         'udyog_aadhar',
@@ -36,6 +37,7 @@ class ProvisionalRegistration extends Model
         'expansion_details',
         'entrepreneurs_profile',
         'project_category',
+        'eligibility_certificate',
         'other_category',
         'project_subcategory',
         'project_description',
@@ -61,8 +63,13 @@ class ProvisionalRegistration extends Model
         'progress',
         'is_completed',
         'status',
+
         'current_stage',
         'workflow_status',
+
+        'current_desk_number',
+        'form_current_status',
+        'eligibility_certificate',
     ];
 
     protected $guarded = [];

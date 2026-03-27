@@ -14,15 +14,56 @@ use Carbon\Carbon;
 use App\Models\Admin\master\Divisions;
 use App\Models\District;
 use App\Models\Country;
+use App\Models\frontend\Api\ApplicationMovement;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+
 class EligibilityRegistrationController extends Controller
 {
+     public function EligibilityForm()
+    {
+        
+           $application_form = ApplicationForm::where('is_active', 1)
+        ->where('slug','issuance-of-eligibility-certificate')
+        ->first();
+        if(!$application_form){
+            return response()->json([
+                'status' => false,
+                'message' => 'No Available Application Forms.'
+            ], 400);
+        } else {
+            return response()->json([
+                'status' => true,
+                'message' => 'Issuance of Eligibility Certificate Registration Forms.',
+                'data' => $application_form,
+            ]);
+        }
+        
+    }
+
     public function store(Request $request)
     {
+         if ($request->is('api/*')) {
+        $form = ApplicationForm::where('is_active', 1)
+            ->where('slug', $request->slug)
+            ->first();
+             if (!$form) {
+            return response()->json([
+            'status' => false,
+            'message' => 'Invalid Application type provided.'
+        ], 400);
+        }
+        }
 
+        $currentYear = date('Y');
         // return $request->all();
         // dd($request->all());
         try {
-            $validated = $request->validate([
+            // $validated = $request->validate([
+                $validator = Validator::make($request->all(), [
+                'email' => 'required|email|unique:users,email',
+                'mobile' => 'required|string|max:10|regex:/^[6-9][0-9]{9}$/',
+
                 'applicant_name' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z\s]+$/'],
                 'provisional_number' => ['nullable', 'string', 'max:255'],
                 'gst_number' => ['nullable', 'string', 'max:15'],
@@ -39,7 +80,61 @@ class EligibilityRegistrationController extends Controller
                 'declaration_place.regex' => 'Place may contain only letters and spaces.',
             ]);
 
+             if ($request->is('api/*')) {
+               if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Validation error',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+            }else{
+                if ($validator->fails()) {
+                return redirect()->back()
+                    ->withErrors($validator)
+                    ->withInput();
+            }}
+
+        $validated = $validator->validated();
             DB::beginTransaction();
+
+             if ($request->is('api/*')) {
+                $regId = $this->generateUniqueRegistrationId();
+                $user = User::create([
+                'name' => $request->applicant_name,
+                'username' => $request->applicant_name,
+                'registration_id' => $regId,
+                'image' => null,
+                'phone' => $request->mobile ?? null,
+                'email' => $request->email ?? null,
+                'role' => 'user',
+                'status' => 'active',
+                'email_verified_at' => now(),
+                'phone_verified_at' => now(),
+                'is_email_verified' => true,
+                'is_phone_verified' => true,
+                'is_aadhar_verified' => false,
+                'password' => Hash::make($request->mobile),
+                'aadhar' => $request->aadhar_no ?? null,
+            ]);
+
+              if (!$user) {
+                return response()->json([
+                'status' => false,
+                'message' => 'Failed to create user'
+                ], 500);
+              }
+
+            }
+
+              if ($request->is('api/*')) {
+                $UserID = $user->id;
+                $application_form_id = $form->id;
+                $is_maitri = 1;
+              }else{
+                $UserID =  Auth::id();
+                $is_maitri = 0;
+              }
 
             // Signature upload
             $signaturePath = null;
@@ -104,8 +199,29 @@ class EligibilityRegistrationController extends Controller
                 }
             }
 
+
+            $lastRecord = EligibilityRegistration::whereYear('created_at', $currentYear)
+            ->whereNotNull('registration_id')
+            ->orderBy('id', 'desc')
+            ->first();
+
+            $nextNumber = 1;
+
+            if ($lastRecord) {
+                preg_match('/EC-(\d+)/', $lastRecord->registration_id, $matches);
+                if (isset($matches[1])) {
+                    $nextNumber = (int)$matches[1] + 1;
+                }
+            }
+
+            $ecNumber = str_pad($nextNumber, 2, '0', STR_PAD_LEFT);
+            $registrationId = "No. DoT/Ince/TP-{$currentYear}/EC-{$ecNumber}/{$currentYear}";
+            
+
             $appFormId = $request->input('application_form_id');
-            $registrationId = 'ELIG-' . strtoupper(Str::random(8));
+            // $registrationId = 'ELIG-' . strtoupper(Str::random(8));
+
+            // No. DoT/ Ince/ TP-2024/ EC-01/ 2026
 
             $registration = EligibilityRegistration::create([
                 'applicant_name' => $validated['applicant_name'],
@@ -136,15 +252,36 @@ class EligibilityRegistrationController extends Controller
                 'is_apply' => true,
                 'submitted_at' => Carbon::now(),
 
-                'user_id' => Auth::id(),
+                'user_id' => $UserID,
                 'registration_id' => $registrationId,
                 'slug_id' => (string) Str::uuid(),
-                'application_form_id' => $appFormId,
+                'application_form_id' => $appFormId ?? $application_form_id,
                 'current_stage' => 'Clerk',
                 'workflow_status' => 'Pending',
+                'is_maitri' => $is_maitri,
             ]);
 
+            ApplicationMovement::updateOrCreate(
+                [
+                    'application_id' => $registration->registration_id,
+                    'desk_number'    => 1,
+                ],
+                [
+                    'officer_name' => 'Clerk',
+                    'remarks'       => 'Under review',
+                    'action'       => 'Pending',
+                    'action_datetime'   => now(),
+                ]
+            );
+
             DB::commit();
+            if ($request->is('api/*')) {
+            return response()->json([
+            'status' => true,
+            'message' => 'Your registration has been submitted successfully!',
+            'application_id' => $registration->registration_id ?? null,
+            ]);
+        }
 
             if ($request->ajax()) {
                 return response()->json([
@@ -162,6 +299,14 @@ class EligibilityRegistrationController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
 
+            if ($request->is('api/*')) {
+            return response()->json([
+                    'status' => false,
+                    'message' => 'There was an error submitting your registration',
+                    'errors' => $e->getMessage()
+                ], 422);
+            }
+
             if ($request->ajax()) {
                 return response()->json([
                     'status' => 'error',
@@ -173,6 +318,14 @@ class EligibilityRegistrationController extends Controller
                 ->withInput()
                 ->with('error', 'Something went wrong. Please try again.');
         }
+    }
+    protected function generateUniqueRegistrationId($prefix = 'MV')
+    {
+    do {
+        $id = strtoupper($prefix . '-' . Str::upper(Str::random(8)));
+    } while (User::where('registration_id', $id)->exists());
+    
+    return $id;
     }
 
     public function show(EligibilityRegistration $registration)

@@ -6,13 +6,25 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Admin\master\Caravan\CaravanType;
 use Illuminate\Validation\Rule;
-
+use Illuminate\Support\Facades\DB;
 
 class CaravanTypeController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+     public function CaravanType(Request $request){
+    $CaravanType = CaravanType::where('is_active',true)->orderBy('name')->get();
+            if (!CaravanType::exists()) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'No CaravanType found.'
+                    ]);
+                }
+                
+                return response()->json([
+                    'status' => true,
+                    'message' => 'All CaravanType.',
+                    'data' => $CaravanType,
+                ]);
+     }
     public function index()
     {
         return view('admin.master.caravan.type.index');

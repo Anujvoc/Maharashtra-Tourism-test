@@ -25,6 +25,7 @@ class Application extends Model
         
         'region_id',
         'district_id',
+        'is_maitri',
         
         'submitted_at',
         'current_desk_number',

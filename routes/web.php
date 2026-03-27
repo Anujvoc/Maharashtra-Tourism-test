@@ -16,6 +16,7 @@ use App\Http\Controllers\frontend\CaravanRegistration\CaravanRegistrationControl
 use App\Http\Controllers\frontend\ApplicationFormController;
 use App\Http\Controllers\frontend\ApplicationForm\TouristVillaRegistrationController;
 use App\Http\Controllers\frontend\ApplicationForm\TourismApartmentRegistrationController;
+use App\Http\Controllers\frontend\ApplicationForm\AdventureApplication\AdventureProvisionalController;
 use App\Http\Controllers\frontend\ApplicationForm\AdventureApplicationController;
 use App\Http\Controllers\frontend\ApplicationForm\AgricultureRegistrationController;
 use App\Http\Controllers\frontend\ApplicationForm\WomenCenteredTourismRegistrationController;
@@ -26,6 +27,8 @@ use App\Http\Controllers\frontend\ApplicationForm\StampDutyWizardController;
 
 
 use Illuminate\Support\Facades\Mail;
+
+
 Route::get('/send-mail', function () {
     try {
         Mail::raw('Test Email', function ($message) {
@@ -146,6 +149,12 @@ Route::middleware(['auth', 'is_frontend'])->prefix('frontend')->as('frontend.')-
     Route::resource('villa-registrations', TouristVillaRegistrationController::class);
     Route::get('/TourismApartments/create', [TourismApartmentRegistrationController::class, 'create'])->name('TourismApartments.create');
     Route::post('/TourismApartments/store', [TourismApartmentRegistrationController::class, 'store'])->name('TourismApartments.store');
+
+    //adventure provisional 
+    
+    Route::get('adventure/provisional-applications',
+            [AdventureProvisionalController::class, 'index']
+        )->name('adventure.provisional.applications');
 
     //adventure
     Route::resource('adventure-applications', AdventureApplicationController::class);

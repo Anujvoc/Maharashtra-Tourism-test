@@ -5,12 +5,30 @@ namespace App\Http\Controllers\Admin\Master;
 use App\Http\Controllers\Controller;
 use App\Models\Admin\Master\Tourismfacility;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\DB;
 class TourismfacilityController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    
+    public function Tourismfacility()
+    {
+
+        $facilities = DB::table('tourismfacilities')->where('is_active', 1)
+      ->orderBy('name')
+      ->get();
+      if (!$facilities) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'No Tourism-facility found.'
+                    ]);
+                }
+                
+                 return response()->json([
+                    'status' => true,
+                    'message' => 'All Tourism facility.',
+                    'data' => $facilities,
+                ]);
+
+    }
     public function index()
     {
         return view('admin.master.tourismfacility.index');
@@ -25,10 +43,7 @@ class TourismfacilityController extends Controller
          return view('admin.master.tourismfacility.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-
+    
       public function data()
     {
         $query = Tourismfacility::query()->latest();

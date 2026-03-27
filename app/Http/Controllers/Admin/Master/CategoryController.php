@@ -17,7 +17,7 @@ class CategoryController extends Controller implements HasMiddleware
     public static function middlewares(): array
     {
         return [
-            new Middleware(middleware: 'auth'),
+            // new Middleware(middleware: 'auth'),
             new Middleware(middleware: 'permission:view category', only: ['index', 'data']),
             new Middleware(middleware: 'permission:create category', only: ['store', 'create']),
             new Middleware(middleware: 'permission:edit category', only: ['update']),
@@ -25,8 +25,49 @@ class CategoryController extends Controller implements HasMiddleware
         ];
     }
 
-    public function index()
+   function category(Request $request){
+    if ($request->is('api/*')) {
+            $Category = Category::all();
+            if (!Category::exists()) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'No category found.'
+                    ]);
+                }
+
+                return response()->json([
+                    'status' => true,
+                    'message' => 'All Categories.',
+                    'data' => $Category,
+                ]);
+
+            }
+   } 
+   public function indexapp(){
+      return response()->json([
+            'status' => false,
+            'message' => 'Invalid Application Form.'
+        ], 400);
+    $application_form = ApplicationForm::where('is_active', 1)->get();
+
+    if($application_form->isEmpty()){
+        return response()->json([
+            'status' => false,
+            'message' => 'Invalid Application Form.'
+        ], 400);
+    } else {
+        return response()->json([
+            'status' => true,
+            'message' => 'All Application Forms.',
+            'data' => $application_form,
+        ]);
+    }
+}
+
+    public function index(Request $request)
     {
+       
+        
         return view('admin.master.category.index');
     }
 

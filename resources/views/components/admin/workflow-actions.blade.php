@@ -274,6 +274,8 @@
                     </form>
                 @endif
 
+                
+
                 <!-- Site Visit Report Upload (Clerk - when Requested) -->
                  @if($application->workflow_status === 'Site Visit Requested' && auth()->user()->hasRole('Clerk'))
                     <form action="{{ route('admin.workflow.site-report', ['type' => $type, 'id' => $application->id]) }}"

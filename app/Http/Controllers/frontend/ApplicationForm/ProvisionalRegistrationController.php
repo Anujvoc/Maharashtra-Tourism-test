@@ -21,11 +21,13 @@ use App\Models\Admin\ApplicationForm;
 use App\Models\District;
 use App\Models\Country;
 use App\Models\State;
-use App\Models\Admin\Master\Enterprise;
+use App\Models\Admin\master\Enterprise;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\Admin\master\Category;
 use App\Models\Admin\master\Divisions;
+use Illuminate\Http\UploadedFile;
+use App\Models\frontend\Api\ApplicationMovement;
 
 class ProvisionalRegistrationController extends Controller
 {
@@ -45,6 +47,8 @@ class ProvisionalRegistrationController extends Controller
             'progress' => ['done' => 0, 'total' => 6],
         ]
     );
+
+
 
     // prevent skipping steps
     if ($step > ($registration->progress['done'] + 1)) {
@@ -78,6 +82,9 @@ class ProvisionalRegistrationController extends Controller
 
 public function saveStep(Request $request, $step)
 {
+    // dd($request->all());
+    $request->eligibility_certificate;
+
     $registration = ProvisionalRegistration::where('user_id', Auth::id())
         ->firstOrFail();
 
@@ -93,15 +100,32 @@ public function saveStep(Request $request, $step)
     if ($step == 6) {
         $registration->update([
             'is_apply'     => true,
-            
+
             'submitted_at'=> now(),
         ]);
+
+        if ($step == 6) {
+            ApplicationMovement::updateOrCreate(
+                [
+                    'application_id' => $registration->registration_id,
+                    'desk_number'    => 1,
+                ],
+                [
+                    'officer_name' => 'Clerk',
+                    'remarks'       => 'Under review',
+                    'action'       => 'Pending',
+                    'action_datetime'   => now(),
+                ]
+            );
+        }
 
         if ($step == 6) {
             $registration->markAsCompleted();
             return redirect()->route('applications.index')
                 ->with('success', 'Application submitted successfully!');
         }
+
+
 
         return redirect()
             ->route('applications.index')
@@ -114,73 +138,7 @@ public function saveStep(Request $request, $step)
 }
 
 
-    public function showc(Application $application, $step)
-    {
 
-        $registration = ProvisionalRegistration::firstOrCreate(
-            [
-                'application_id' => $application->id,
-                'user_id' => Auth::id()
-            ],
-            [
-                'current_step' => 1,
-                'progress' => ['done' => 0, 'total' => 6]
-            ]
-        );
-
-        // Update application current step
-        $application->current_step = $step;
-        $application->save();
-        $applicantTypes = Enterprise::select('id', 'name')->get();
-        $regions      = DB::table('divisions')->select('id', 'name')->get();
-        $districts    = DB::table('districts')->where('state_id', 14)->select('id', 'name')->get();
-        $states    = DB::table('states')->where('id', 14)->select('id', 'name')->get();
-        $categories   = Category::all();
-        $application_form = ApplicationForm::where('id', $registration->application_form_id)
-            ->firstOrFail();
-        $view = 'frontend.Application.provisional.step' . $step;
-
-        return view($view, [
-            'application' => $application,
-            'registration' => $registration,
-            'applicantTypes' => $applicantTypes,
-            'categories' => $categories,
-            'regions' => $regions,
-            'districts' => $districts,
-            'states' => $states,
-            'application_form' => $application_form,
-            'step' => $step
-        ]);
-    }
-    public function saveStepc(Request $request, Application $application, $step)
-    {
-        $registration = ProvisionalRegistration::where('application_id', $application->id)
-            ->where('user_id', Auth::id())
-            ->firstOrFail();
-
-        // Validate based on step
-        $validationRules = $this->getValidationRules($step);
-        $validated = $request->validate($validationRules);
-
-        // Process and save data based on step
-        $this->processStepData($registration, $step, $validated, $request);
-
-        // Update progress
-        $registration->updateProgress($step);
-
-        // If this is the last step, mark as completed
-        if ($step == 6) {
-            $registration->markAsCompleted();
-            return redirect()->route('applications.index')
-                ->with('success', 'Application submitted successfully!');
-        }
-
-        // Redirect to next step
-        return redirect()->route('provisional.wizard.show', [
-            'application' => $application,
-            'step' => $step + 1
-        ])->with('success', 'Step ' . $step . ' saved successfully!');
-    }
 
     private function getValidationRules($step)
     {
@@ -208,13 +166,14 @@ public function saveStep(Request $request, $step)
                     'district' => 'required|string|max:255',
                     'state' => 'required|string|max:255',
                     'pincode' => 'required|digits:6',
-                    'mobile' => 'required|digits:10',
+                    'mobile' => 'required|regex:/^[6-9][0-9]{9}$/',
                     'email' => 'required|email',
                     'website' => 'nullable|url',
                     'udyog_aadhar' => 'nullable|string',
                     'gst_number' => 'nullable|string',
                     'zone' => 'required|string',
                     'project_type' => 'required|string|in:New,Expansion',
+                    'eligibility_certificate' => 'nullable|string',
                     'project_category' => 'required|string',
                     'project_subcategory' => 'required|string|max:255',
                     'project_description' => 'required|string|min:10',
@@ -290,6 +249,7 @@ public function saveStep(Request $request, $step)
 
                 // Process expansion details if project type is Expansion
                 $expansionDetails = null;
+                $eligibility_certificate = null;
                 if ($data['project_type'] === 'Expansion' && $request->has('existing_facilities')) {
                     $expansionDetails = [];
                     for ($i = 0; $i < count($request->existing_facilities); $i++) {
@@ -302,12 +262,17 @@ public function saveStep(Request $request, $step)
                     }
                 }
 
+                if ($data['project_type'] === 'New') {
+                    $data['eligibility_certificate'] = null;
+                }
+
                 $registration->update([
                     'site_address' => $siteAddress,
                     'udyog_aadhar' => $data['udyog_aadhar'] ?? null,
                     'gst_number' => $data['gst_number'] ?? null,
                     'zone' => $data['zone'],
                     'project_type' => $data['project_type'],
+                    'eligibility_certificate' => $data['eligibility_certificate'],
                     'expansion_details' => $expansionDetails,
                     'entrepreneurs_profile' => $entrepreneurs,
                     'project_category' => $data['project_category'],
@@ -531,7 +496,48 @@ public function saveStep(Request $request, $step)
                 break;
         }
     }
-    private function uploadFile($request, $fieldName, $docName = null, $index = null)
+
+
+
+private function uploadFile($request, $fieldName, $docName = null, $index = null)
+{
+    // ---------- 1. GET FILE ----------
+    if ($index !== null) {
+        $files = $request->file($fieldName);
+
+        if (!is_array($files) || !isset($files[$index])) {
+            return null;
+        }
+
+        $file = $files[$index];
+    } else {
+        $file = $request->file($fieldName);
+    }
+
+    // ---------- 2. SAFETY CHECK ----------
+    if (!$file instanceof UploadedFile || !$file->isValid()) {
+        return null;
+    }
+
+    // ---------- 3. FILE INFO ----------
+    $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+    $extension    = $file->getClientOriginalExtension();
+
+    // ---------- 4. SAFE NAMES ----------
+    $safeOriginal = Str::slug($originalName);
+    $safeDocName  = $docName ? Str::slug($docName) : 'document';
+
+    // ---------- 5. FINAL FILE NAME ----------
+    $fileName = $safeDocName . '_' . $safeOriginal . '_' . time() . '_' . uniqid() . '.' . $extension;
+
+    // ---------- 6. FINAL DIRECTORY ----------
+    $directory = 'ProvisionalRegistration/' . $safeDocName;
+
+    // ---------- 7. STORE ----------
+    return $file->storeAs($directory, $fileName, 'public');
+}
+
+    private function uploadFile654($request, $fieldName, $docName = null, $index = null)
 {
     // Handle array file (other documents etc.)
     if ($index !== null) {

@@ -35,9 +35,28 @@ class StateController extends Controller
 
 
 
-    public function create()
+    public function state(Request $request)
     {
-        //
+        if ($request->is('api/*')) {
+            $states = \App\Models\State::with('country')
+            ->where('country_id', 1)
+            ->orderBy('name')
+            ->get();
+           if (!\App\Models\State::exists()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'No States found.'
+                ]);
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => 'States Data.',
+                'data' => $states,
+            ]);
+
+
+        }
     }
 
     /**

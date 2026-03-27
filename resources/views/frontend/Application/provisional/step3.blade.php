@@ -162,12 +162,12 @@
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">
-                                c. Project Cost (₹): <span class="text-danger">*</span>
+                                c. Project Cost (₹ In Lakh): <span class="text-danger">*</span>
                             </label>
                             <input type="number"
                                    class="form-control @error('project_cost') is-invalid @enderror"
                                    name="project_cost"
-                                   placeholder="Enter total project cost in ₹"
+                                   placeholder="Enter total project cost in ₹ In Lakh"
                                    required
                                    min="0"
                                    step="0.01"

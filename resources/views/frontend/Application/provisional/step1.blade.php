@@ -57,8 +57,6 @@
             method="POST"
             novalidate>
             @csrf
-
-
                 <div class="row g-3">
                     <!-- 1. Applicant Name -->
                     <div class="col-md-6">
@@ -91,7 +89,7 @@
                             @enderror
                     </div>
 
-                        <!-- 3. Type of Enterprise -->
+
                     <div class="col-md-6 ">
                         <label for="businessType" class="form-label required">
                           <i class="bi bi-diagram-3 form-icon"></i> Type of Enterprise

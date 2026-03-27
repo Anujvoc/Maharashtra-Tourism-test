@@ -592,6 +592,7 @@
                                             <th style="border:2px solid #000; width:15%;">Upload File</th>
                                             <th style="border:2px solid #000; width:20%;">Preview</th>
                                         </tr>
+                                        
                                     </thead>
                                     <tbody>
                                         <!-- Row 1 -->

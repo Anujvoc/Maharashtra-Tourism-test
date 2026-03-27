@@ -19,6 +19,15 @@ class StampDutyApplication extends Model
         'district_id',
         'is_apply',
         'user_id',
+        'slug_id',
+        'progress',
+        'is_maitri',
+        'is_completed',
+        'registration_id',
+        'application_form_id',
+        'submitted_at',
+        'current_step',
+        'status',
     ];
 
     protected $casts = [

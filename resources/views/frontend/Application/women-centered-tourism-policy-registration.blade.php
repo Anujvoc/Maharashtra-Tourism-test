@@ -1,5 +1,5 @@
 @extends('frontend.layouts2.master')
-@section('title', 'Women-Centered Tourism Registration Form')
+@section('title', 'Women-Cantered Tourism Registration Form')
 
 @push('styles')
 <style>

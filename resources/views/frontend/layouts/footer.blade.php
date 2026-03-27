@@ -4,7 +4,7 @@
         <!-- Brand Section -->
         <div style="flex: 1; max-width: 400px;">
           <div class="d-flex align-items-center gap-2 mb-3">
-            <img src="https://maharashtratourism.gov.in/wp-content/uploads/2025/01/mah-logo-300x277.png"
+            <img src="{{ asset('backend/mah-logo-300x277.png') }}"
                  alt="Maharashtra Tourism logo" height="44">
             <h5 class="m-0 text-white fw-bold">Maharashtra Tourism</h5>
           </div>
@@ -47,8 +47,8 @@
     </li>
     <li>
         <i class="bi bi-globe me-2 text-brand"></i>
-        <a href="https://www.maharashtratourism.gov.in" 
-           class="text-secondary text-decoration-none" 
+        <a href="https://www.maharashtratourism.gov.in"
+           class="text-secondary text-decoration-none"
            target="_blank">
             www[dot]maharashtratourism[dot]gov[dot]in
         </a>
@@ -61,7 +61,7 @@
     <hr class="border-secondary-subtle">
     <div class="d-flex justify-content-between small">
       <span>© <span id="year"></span> Maharashtra Tourism. All rights reserved.</span>
-      <a href="#home" class="text-decoration-none">Back to top ↑</a>
+      <a href="{{ url('/') }}" class="text-decoration-none">Back to top ↑</a>
     </div>
   </div>
 </footer>

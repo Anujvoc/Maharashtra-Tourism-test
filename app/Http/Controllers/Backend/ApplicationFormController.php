@@ -63,7 +63,8 @@ class ApplicationFormController extends Controller implements HasMiddleware
                     $edit = route('admin.application-forms.edit', $row);
                     $actions .= '
                     <a href="' . $edit . '" class="btn btn-sm btn-primary me-1">
-                        <i class="bi bi-pencil-square"></i>
+                       
+                        <i class="fa-solid fa-pen-to-square"></i>
                     </a>
                 ';
                 }
@@ -72,7 +73,7 @@ class ApplicationFormController extends Controller implements HasMiddleware
                 
                     $actions .= '
                         <a href="' . $delete . '" class="btn btn-sm btn-danger deletebutton delete-btn">
-                            <i class="bi bi-trash"></i>
+                            <i class="fa-solid fa-trash"></i>
                         </a>
                     ';
                 }

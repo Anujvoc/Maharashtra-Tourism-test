@@ -11,8 +11,12 @@
     <!--favicon-->
     {{--
     <link rel="icon" href="assets/images/favicon-32x32.png" type="image/png"> --}}
-    <link rel="icon" href="https://maharashtratourism.gov.in/wp-content/uploads/2025/01/mah-logo-300x277.png"
-        sizes="32x32" type="image/png">
+    {{-- <link rel="icon" href="https://maharashtratourism.gov.in/wp-content/uploads/2025/01/mah-logo-300x277.png"
+        sizes="32x32" type="image/png"> --}}
+
+        <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('backend/mah-logo-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('backend/mah-logo-16x16.png') }}">
+
 
     <!-- loader-->
 

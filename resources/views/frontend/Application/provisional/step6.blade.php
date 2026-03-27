@@ -555,6 +555,11 @@ $totalDocs = $enclosureCount + $otherDocsCount;
             </thead>
             <tbody>
                 @forelse($documents as $key => $label)
+
+                @if($key === 'incorporation_documents' && ($registration->enterprise_type ?? 0) == 1)
+                @continue
+                @endif
+
                     @php
                         $item     = $enclosures[$key] ?? null;
                         $path     = $item['file_path'] ?? null;
@@ -564,6 +569,8 @@ $totalDocs = $enclosureCount + $otherDocsCount;
                         $ext      = $path ? strtolower(pathinfo($path, PATHINFO_EXTENSION)) : null;
                         $uploaded = $path && $url;
                     @endphp
+
+
 
                     <tr>
                         {{-- Select icon --}}
@@ -743,7 +750,7 @@ $totalDocs = $enclosureCount + $otherDocsCount;
             {{-- =============================================
                 DECLARATION FORM
             ============================================= --}}
-            <form id="stepForm" action="{{ route('provisional.wizard.save', [$step]) }}" method="POST" enctype="multipart/form-data" novalidate>
+            <form id="stepForm" action="{{ route('provisional.wizard.save', [$step]) }}" method="POST" enctype="multipart/form-data" >
                 @csrf
 
                 <div class="review-card mt-4">
@@ -1101,6 +1108,33 @@ $(document).ready(function() {
     });
 });
 </script>
+
+<script>
+    $(document).ready(function () {
+
+        $('#submitB77tn').on('click', function (e) {
+            e.preventDefault(); // stop direct submit
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'Once submitted, you will not be able to edit this application.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Submit',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#ff6600',
+                cancelButtonColor: '#6c757d',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit(); // ✅ actual submit
+                }
+            });
+
+        });
+
+    });
+    </script>
+
 
 
 @endpush

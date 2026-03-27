@@ -148,144 +148,154 @@
                     <h6 class="mb-3">Enclosures:</h6>
                     <p class="text-muted mb-3">Tick mark the necessary documents enclosed with the application form.</p>
 
-                    <div class="table-responsive mb-4">
-                        <table class="table table-bordered table-striped align-middle text-center" id="enclosureTable">
-                            <thead class="table-primary">
-                                <tr>
-                                    <th style="width:5%;">Select</th>
-                                    <th style="width:30%;">Document Type</th>
-                                    <th style="width:15%;">Doc No.</th>
-                                    <th style="width:15%;">Date of Issue</th>
-                                    <th style="width:20%;">Upload Document</th>
-                                    <th style="width:15%;">Preview</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($documents as $key => $doc)
-                                    @php
-                                        $docData   = $enclosures[$key] ?? null;
-                                        $isChecked = (bool) $docData;
-                                        $filePath  = $docData['file_path'] ?? null;
-                                        $fileUrl   = $filePath ? asset('storage/'.$filePath) : null;
-                                        $ext       = $filePath ? strtolower(pathinfo($filePath, PATHINFO_EXTENSION)) : null;
-                                    @endphp
-                                    <tr class="document-row">
-                                        {{-- Checkbox --}}
-                                        <td>
-                                            <input type="checkbox"
-                                                   class="form-check-input doc-check"
-                                                   data-doc="{{ $key }}"
-                                                   {{ $isChecked ? 'checked' : '' }}>
-                                        </td>
 
-                                        {{-- Label + land ownership radios --}}
-                                        <td class="text-start">
-                                            {!! $doc['label'] !!}
-                                            @if($key === 'land_ownership')
-                                                <div class="d-flex justify-content-start gap-3 mt-2">
-                                                    <div class="form-check form-check-inline">
-                                                        <input class="form-check-input land-type @error('land_type') is-invalid @enderror"
-                                                               type="radio"
-                                                               name="land_type"
-                                                               id="landOwned{{ $key }}"
-                                                               value="Owned"
-                                                               {{ $isChecked ? '' : 'disabled' }}
-                                                               {{ old('land_type', $registration->land_type ?? '') === 'Owned' ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="landOwned{{ $key }}">Owned</label>
-                                                    </div>
-                                                    <div class="form-check form-check-inline">
-                                                        <input class="form-check-input land-type @error('land_type') is-invalid @enderror"
-                                                               type="radio"
-                                                               name="land_type"
-                                                               id="landLeased{{ $key }}"
-                                                               value="Leased"
-                                                               {{ $isChecked ? '' : 'disabled' }}
-                                                               {{ old('land_type', $registration->land_type ?? '') === 'Leased' ? 'checked' : '' }}>
-                                                        <label class="form-check-label" for="landLeased{{ $key }}">Leased</label>
-                                                    </div>
-                                                </div>
-                                                @error('land_type')
-                                                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                                                @enderror
-                                            @endif
-                                        </td>
 
-                                        {{-- Doc No --}}
-                                        <td>
-                                            <input type="text"
-                                                   class="form-control @error($key.'_doc_no') is-invalid @enderror doc-number"
-                                                   name="{{ $key }}_doc_no"
-                                                   placeholder="Enter Doc No."
-                                                   value="{{ old($key.'_doc_no', $docData['doc_no'] ?? '') }}"
-                                                   {{ $isChecked ? '' : 'disabled' }}>
-                                            @error($key.'_doc_no')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </td>
+                    @php
+    $enclosures = $registration->enclosures ?? [];
 
-                                        {{-- Date of Issue --}}
-                                        <td>
-                                            <input type="date"
-                                                   class="form-control @error($key.'_issue_date') is-invalid @enderror doc-date"
-                                                   name="{{ $key }}_issue_date"
-                                                   value="{{ old($key.'_issue_date', $docData['issue_date'] ?? '') }}"
-                                                   {{ $isChecked ? '' : 'disabled' }}>
-                                            @error($key.'_issue_date')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </td>
+    $documents = [
+        'commencement_certificate' => [
+            'label'   => 'Commencement Certificate / Plan Sanction Letter',
+            'required'=> true,
+        ],
+        'sanctioned_plan' => [
+            'label'   => 'Copy of Sanctioned Plan of Construction',
+            'required'=> true,
+        ],
+        'proof_of_identity' => [
+            'label'   => 'Proof of Identity',
+            'required'=> true,
+        ],
+        'proof_of_address' => [
+            'label'   => 'Proof of Address',
+            'required'=> true,
+        ],
+        'land_ownership' => [
+            'label'   => 'Land Ownership Document',
+            'required'=> true,
+        ],
+        'project_report' => [
+            'label'   => 'Project Report',
+            'required'=> true,
+        ],
+        'incorporation_documents' => [
+            'label'   => 'Memorandum and Article of Association along with Certificate of Incorporation / Partnership Deed / Trust / Society Registration',
+            'required'=> true,
+        ],
+        'gst_registration' => [
+            'label'   => 'GST Registration',
+            'required'=> false,
+        ],
+        'special_category_proof' => [
+            'label'   => 'Proof of Special Category Application (MTP 2024 – 14.4.6)',
+            'required'=> false,
+        ],
+        'ca_certificate' => [
+            'label'   => 'CA Certificate on Project Cost',
+            'required'=> true,
+        ],
+        'processing_fee_challan' => [
+            'label'   => 'Processing Fee Challan (₹10,000) —
+                <a href="https://www.gras.mahakosh.gov.in" target="_blank">www.gras.mahakosh.gov.in</a>',
+            'required'=> true,
+        ],
+    ];
+@endphp
 
-                                        {{-- Upload --}}
-                                        <td>
-                                            <input type="file"
-                                                   class="form-control doc-file @error($key.'_file') is-invalid @enderror"
-                                                   name="{{ $key }}_file"
-                                                   accept=".pdf,.jpg,.jpeg,.png"
-                                                   {{ $isChecked ? '' : 'disabled' }}>
-                                            @error($key.'_file')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </td>
+<div class="table-responsive mb-4">
+<table class="table table-bordered table-striped align-middle text-center" id="enclosureTable">
+<thead class="table-primary">
+<tr>
+    <th width="30%">Document Type</th>
+    <th width="15%">Doc No.</th>
+    <th width="15%">Date</th>
+    <th width="20%">Upload</th>
+    <th width="20%">Preview</th>
+</tr>
+</thead>
 
-                                        {{-- Preview + remove --}}
-                                        <td class="preview-cell">
-                                            <div class="doc-preview">
-                                                {{-- hidden flag for existing removal --}}
-                                                <input type="hidden"
-                                                       name="remove_existing_enclosures[{{ $key }}]"
-                                                       class="remove-existing-flag"
-                                                       value="0">
-                                                @if($fileUrl)
-                                                    <button type="button"
-                                                            class="btn btn-sm btn-light text-danger border-0 remove-preview"
-                                                            data-existing="1">
-                                                        <i class="bi bi-x-circle-fill"></i>
-                                                    </button>
+<tbody>
+@foreach($documents as $key => $doc)
 
-                                                    @if(in_array($ext, ['jpg','jpeg','png']))
-                                                        <img src="{{ $fileUrl }}"
-                                                             alt="Document"
-                                                             class="img-thumbnail doc-thumb"
-                                                             data-full="{{ $fileUrl }}">
-                                                        <div><small class="text-muted">Click image to enlarge</small></div>
-                                                    @elseif($ext === 'pdf')
-                                                        <a href="{{ $fileUrl }}" target="_blank"
-                                                           class="btn btn-outline-primary btn-sm">
-                                                            <i class="bi bi-file-earmark-pdf"></i> View PDF
-                                                        </a>
-                                                    @else
-                                                        <a href="{{ $fileUrl }}" target="_blank" class="small">
-                                                            Open file
-                                                        </a>
-                                                    @endif
-                                                @endif
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
+    {{-- HIDE incorporation_documents IF enterprise_type == 1 --}}
+    @if($key === 'incorporation_documents' && ($registration->enterprise_type ?? 0) == 1)
+        @continue
+    @endif
+
+    @php
+        $docData  = $enclosures[$key] ?? null;
+        $filePath = $docData['file_path'] ?? null;
+        $fileUrl  = $filePath ? asset('storage/'.$filePath) : null;
+        $ext      = $filePath ? strtolower(pathinfo($filePath, PATHINFO_EXTENSION)) : null;
+    @endphp
+
+<tr>
+<td class="text-start">
+    {!! $doc['label'] !!}
+
+    @if($key === 'land_ownership')
+        <div class="mt-2">
+            <label><input type="radio" name="land_type" value="Owned"
+                {{ old('land_type',$registration->land_type ?? '')=='Owned'?'checked':'' }}> Owned</label>
+            <label class="ms-3"><input type="radio" name="land_type" value="Leased"
+                {{ old('land_type',$registration->land_type ?? '')=='Leased'?'checked':'' }}> Leased</label>
+        </div>
+    @endif
+</td>
+
+<td>
+    <input type="text" class="form-control doc-number"
+        name="{{ $key }}_doc_no"
+        value="{{ old($key.'_doc_no', $docData['doc_no'] ?? '') }}">
+</td>
+
+<td>
+    <input type="date" class="form-control doc-date"
+        name="{{ $key }}_issue_date"
+        value="{{ old($key.'_issue_date', $docData['issue_date'] ?? '') }}">
+</td>
+
+<td>
+    <input type="file"
+    class="form-control doc-file"
+    name="{{ $key }}_file"
+    accept=".pdf,.jpg,.jpeg,.png"
+    {{ ($doc['required'] && empty($filePath)) ? 'required' : '' }}>
+
+</td>
+
+<td class="preview-cell">
+    <div class="doc-preview">
+        <input type="hidden" class="remove-existing-flag"
+            name="remove_existing_enclosures[{{ $key }}]" value="0">
+
+        @if($fileUrl)
+            <button type="button"
+                class="btn btn-sm btn-light text-danger remove-preview"
+                data-existing="1">
+                <i class="bi bi-x-circle-fill"></i>
+            </button>
+
+            @if(in_array($ext,['jpg','jpeg','png']))
+                <img src="{{ $fileUrl }}"
+                    class="img-thumbnail doc-thumb"
+                    style="max-height:60px"
+                    data-full="{{ $fileUrl }}">
+            @elseif($ext==='pdf')
+                <a href="{{ $fileUrl }}" target="_blank"
+                   class="btn btn-outline-primary btn-sm">
+                    View PDF
+                </a>
+            @endif
+        @endif
+    </div>
+</td>
+</tr>
+@endforeach
+</tbody>
+</table>
+</div>
+
 
                     {{-- Other Documents --}}
                     <div class="mb-4">
@@ -507,7 +517,7 @@
     </div>
 </section>
 
-{{-- Modal for image preview --}}
+{{-- Modal for image preview
 <div class="modal fade" id="docPreviewModal" tabindex="-1" aria-labelledby="docPreviewLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
@@ -521,29 +531,114 @@
         </div>
     </div>
 </div>
+--}}
+<!-- IMAGE PREVIEW MODAL -->
+<div class="modal fade" id="docPreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Document Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="docPreviewImage"
+                     src=""
+                     class="img-fluid"
+                     style="max-height:80vh;">
+            </div>
+        </div>
+    </div>
+</div>
+
+
 @endsection
 
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+
 <script>
-$(document).ready(function() {
+    $(document).ready(function () {
 
-    // Enable/disable document inputs based on checkbox
-    $(document).on('change', '.doc-check', function() {
-        const row       = $(this).closest('tr');
-        const isChecked = $(this).is(':checked');
+        // UNIVERSAL PREVIEW (doc-file + other-doc-file)
+        $(document).on('change', '.doc-file, .other-doc-file', function () {
 
-        row.find('.doc-number, .doc-date, .doc-file, .land-type').prop('disabled', !isChecked);
+            const file = this.files[0];
+            const row = $(this).closest('tr');
+            const preview = row.find('.doc-preview');
 
-        // Auto-select first land type if row is enabled
-        if (isChecked && row.find('.land-type').length > 0) {
-            if (!$('input[name="land_type"]:checked').length) {
-                row.find('.land-type').first().prop('checked', true);
+            preview.empty();
+            row.find('.remove-existing-flag').val('0');
+
+            if (!file) return;
+
+            const name = file.name.toLowerCase();
+            const type = (file.type || '').toLowerCase();
+
+            // remove button
+            preview.append(`
+                <button type="button"
+                    class="btn btn-sm btn-light text-danger border-0 remove-preview"
+                    data-existing="0">
+                    <i class="bi bi-x-circle-fill"></i>
+                </button>
+            `);
+
+            // IMAGE (USE FileReader – FIXES BROKEN ICON)
+            if (
+                type.startsWith('image/') ||
+                name.endsWith('.jpg') ||
+                name.endsWith('.jpeg') ||
+                name.endsWith('.png')
+            ) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    preview.append(`
+                        <img src="${e.target.result}"
+                             class="img-thumbnail doc-thumb"
+                             style="max-height:60px;cursor:pointer"
+                             data-full="${e.target.result}">
+                        <div><small class="text-muted">Click image to enlarge</small></div>
+                    `);
+                };
+                reader.readAsDataURL(file);
             }
-        }
-    });
 
-    // Add new other document row
+            // PDF
+            else if (type === 'application/pdf' || name.endsWith('.pdf')) {
+                const url = URL.createObjectURL(file);
+                preview.append(`
+                    <a href="${url}" target="_blank"
+                       class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-file-earmark-pdf"></i> View PDF
+                    </a>
+                `);
+            }
+
+            // OTHER
+            else {
+                preview.append(`<small class="text-muted">${file.name}</small>`);
+            }
+        });
+
+        // IMAGE MODAL
+        $(document).on('click', '.doc-thumb', function () {
+            $('#docPreviewImage').attr('src', $(this).data('full'));
+            new bootstrap.Modal('#docPreviewModal').show();
+        });
+
+        // REMOVE
+        $(document).on('click', '.remove-preview', function () {
+            const row = $(this).closest('tr');
+            row.find('.doc-file, .other-doc-file').val('');
+            row.find('.remove-existing-flag').val('1');
+            row.find('.doc-preview').empty();
+        });
+
+    });
+    </script>
+
+    <script>
+         // Add new other document row
     $('#addDocRow').on('click', function() {
         const newRow = `
             <tr>
@@ -577,10 +672,6 @@ $(document).ready(function() {
                 </td>
                 <td class="preview-cell">
                     <div class="doc-preview">
-                        <input type="hidden"
-                               name="other_remove_existing[]"
-                               class="remove-existing-flag"
-                               value="0">
                     </div>
                 </td>
                 <td>
@@ -599,138 +690,61 @@ $(document).ready(function() {
             $(this).closest('tr').remove();
         }
     });
+    </script>
 
-    // Image click → open modal
-    $(document).on('click', '.doc-thumb', function() {
-        const src = $(this).data('full');
-        if (!src) return;
-        $('#docPreviewImage').attr('src', src);
-        const modal = new bootstrap.Modal(document.getElementById('docPreviewModal'));
-        modal.show();
-    });
+    <script>
+        $(document).on('click', '.doc-thumb', function () {
+            const src = $(this).data('full');
+            if (!src) return;
 
-    // Remove preview (both existing & newly selected)
-    $(document).on('click', '.remove-preview', function() {
-        const $btn     = $(this);
-        const $row     = $btn.closest('tr');
-        const isExisting = $btn.data('existing') == 1;
+            $('#docPreviewImage').attr('src', src);
 
-        // clear file input
-        $row.find('.doc-file, .other-doc-file').val('');
+            const modal = new bootstrap.Modal(
+                document.getElementById('docPreviewModal')
+            );
+            modal.show();
+        });
 
-        // mark existing for removal if applicable
-        if (isExisting) {
-            $row.find('.remove-existing-flag').val('1');
-        }
+    </script>
 
-        // clear preview area
-        $row.find('.doc-preview').empty().append(
-            '<input type="hidden" name="' +
-            ($row.closest('table').attr('id') === 'otherDocs'
-                ? 'other_remove_existing[]'
-                : 'dummy_hidden') +
-            '" class="remove-existing-flag" value="0">'
-        );
-    });
-
-    // Live preview for newly selected files (enclosures + other docs)
-    $(document).on('change', '.doc-file, .other-doc-file', function() {
-        const file = this.files[0];
-        const $row = $(this).closest('tr');
-        const $preview = $row.find('.doc-preview');
-
-        $preview.empty();
-
-        // If nothing selected, no preview
-        if (!file) return;
-
-        const url = URL.createObjectURL(file);
-        const type = file.type.toLowerCase();
-        const name = file.name.toLowerCase();
-
-        // For new files, flag will be 0 (not existing)
-        $preview.append(
-            '<button type="button" class="btn btn-sm btn-light text-danger border-0 remove-preview" data-existing="0">' +
-                '<i class="bi bi-x-circle-fill"></i>' +
-            '</button>'
-        );
-
-        if (type.startsWith('image/')) {
-            const img = $('<img>')
-                .attr('src', url)
-                .attr('alt', 'Selected Document')
-                .addClass('img-thumbnail doc-thumb')
-                .css({maxHeight: '60px'})
-                .attr('data-full', url);
-
-            $preview.append(img);
-            $preview.append('<div><small class="text-muted">Click image to enlarge</small></div>');
-
-        } else if (type === 'application/pdf' || name.endsWith('.pdf')) {
-            const link = $('<a>')
-                .attr('href', url)
-                .attr('target', '_blank')
-                .addClass('btn btn-outline-primary btn-sm')
-                .html('<i class="bi bi-file-earmark-pdf"></i> View PDF');
-
-            $preview.append(link);
-
-        } else {
-            $preview.append('<small class="text-muted">Selected file: ' + file.name + '</small>');
-        }
-    });
-
-    // jQuery Validation
+<script>
     $("#stepForm").validate({
         ignore: [],
-        errorElement: "div",
         errorClass: "invalid-feedback",
-        highlight: function (element) {
-            $(element).addClass("is-invalid");
-        },
-        unhighlight: function (element) {
-            $(element).removeClass("is-invalid");
-        },
-        errorPlacement: function(error, element) {
-            if (element.is(':checkbox')) {
-                error.insertAfter(element.closest('td'));
-            } else if (element.parent(".input-group").length) {
-                error.insertAfter(element.parent());
-            } else {
-                error.insertAfter(element);
-            }
-        },
-        rules: {
-            commencement_certificate_doc_no: {
-                required: function() {
-                    return $('[data-doc="commencement_certificate"]').is(':checked');
-                }
-            },
-            commencement_certificate_issue_date: {
-                required: function() {
-                    return $('[data-doc="commencement_certificate"]').is(':checked');
-                }
-            },
-            commencement_certificate_file: {
-                required: function() {
-                    return $('[data-doc="commencement_certificate"]').is(':checked') &&
-                           $('[name="remove_existing_enclosures[commencement_certificate]"]').val() === '1';
-                }
-            }
-        },
+        highlight: e => $(e).addClass("is-invalid"),
+        unhighlight: e => $(e).removeClass("is-invalid"),
+
+        rules: (function () {
+            let rules = {};
+
+            $('.doc-file').each(function () {
+                const input = $(this);
+                rules[input.attr('name')] = {
+                    required: function () {
+                        const row = input.closest('tr');
+                        const hasPreview = row.find('.doc-preview img, .doc-preview a').length > 0;
+                        const removed = row.find('.remove-existing-flag').val() === '1';
+                        return !hasPreview || removed;
+                    }
+                };
+            });
+
+            return rules;
+        })(),
+
         messages: {
-            commencement_certificate_doc_no: {
-                required: "Please enter Document Number."
-            },
-            commencement_certificate_issue_date: {
-                required: "Please select Date of Issue."
-            },
-            commencement_certificate_file: {
-                required: "Please upload this document."
-            }
+            '*': { required: "Please upload this document." }
         }
     });
-
+    </script>
+<script>
+    $(document).on('click', '.remove-preview', function () {
+    const row = $(this).closest('tr');
+    row.find('.doc-file').val('');
+    row.find('.remove-existing-flag').val('1');
+    row.find('.doc-preview').empty();
 });
+
 </script>
+
 @endpush

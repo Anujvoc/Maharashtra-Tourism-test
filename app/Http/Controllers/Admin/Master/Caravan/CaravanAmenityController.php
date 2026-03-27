@@ -11,9 +11,21 @@ use Illuminate\Validation\Rule;
 
 class CaravanAmenityController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    
+    public function Amenities(Request $request){
+    $CaravanType = CaravanAmenity::where('is_active',true)->orderBy('name')->get();
+            if (!CaravanAmenity::exists()) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'No Caravan-Amenity found.'
+                    ]);
+                }
+                return response()->json([
+                    'status' => true,
+                    'message' => 'All Caravan-Amenity.',
+                    'data' => $CaravanType,
+                ]);
+     }
     public function index()
     {
         return view('admin.master.caravan.amenities.index');

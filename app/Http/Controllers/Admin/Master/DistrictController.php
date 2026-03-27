@@ -38,12 +38,26 @@ class DistrictController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+
+    public function district(Request $request)
     {
-        //
+         if ($request->is('api/*')) {
+            $districts = District::where('state_id',14)
+            ->orderBy('name')
+            ->get();
+           if (!District::exists()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'No District found.'
+                ]);
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => 'District Data.',
+                'data' => $districts,
+            ]);
+        }
     }
 
     /**

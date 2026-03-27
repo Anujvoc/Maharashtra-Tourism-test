@@ -326,7 +326,7 @@
               @php([$lightUrl,$lightExt,$lightName] = industrialDocPreview($step4 ?? null,'light_bill_path'))
               <div class="col-md-6 mb-3">
                 <div class="form-group">
-                  <label class="form-label required">Light Bill (File Size 5 MB)</label>
+                  <label class="form-label required">Latest Light Bill (File Size 5 MB)</label>
                   <input type="file"
                          name="light_bill"
                          class="form-control file-input"

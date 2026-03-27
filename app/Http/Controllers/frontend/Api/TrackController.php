@@ -27,22 +27,17 @@ class TrackController extends Controller
 {
     public function trackStatus(Request $request)
     {
-        // 1️⃣ Input Validation (Decrypt if they send encrypted body)
-        // Note: Currently assuming they send raw JSON as per your request snippet.
-        // If they send encrypted string, you must decrypt $request->getContent() first.
 
         $appId = $request->AppID;
-        $language = $request->Language ?? 'EN'; // Handle Language
+        $language = $request->Language ?? 'EN';
 
         if (!$appId) {
             return response()->json(["error" => "Application ID is required"], 400);
         }
 
-        // 2️⃣ Find Application
         $app = Application::where('registration_id', $appId)->first();
 
         if (!$app) {
-            // Return simplified error or standard structure with error flag if required
             return response()->json(["error" => "Application ID not found"], 404);
         }
 
@@ -72,6 +67,7 @@ class TrackController extends Controller
 
         // 5️⃣ Final Decision Logic
         // approved = 0, rejected = 1, pending_office = 2, pending_citizen = 3
+        
         $finalDecision = 2; // Default: Pending at Department
         $status = strtolower($app->form_current_status);
 
@@ -102,7 +98,7 @@ class TrackController extends Controller
         ];
 
         // 7️⃣ Return Response
-        // Usually Govt portals expect Encrypted String. 
+        // Usually Govt portals expect Encrypted String.
         // If testing locally or they allow raw JSON, use json response.
         // For Production/Strict mode, uncomment encryption.
 
@@ -129,7 +125,7 @@ class TrackController extends Controller
         // Hex / base64 format (usually base64 use hota hai)
         return base64_encode($encrypted);
     }
-    
+
     // API for Aaple Sarkar RTS Dashboard Integration and district-wise and  department-wise application statistics
 
     public function index()
@@ -277,8 +273,8 @@ class TrackController extends Controller
             ];
         }
     }
-    
-    
+
+
     public function create()
     {
         //

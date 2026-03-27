@@ -315,6 +315,10 @@
     $terms_and_conditions = DB::table('terms_and_conditions')
         ->where('form_id', $registration->application_form_id)
         ->first();
+        $projectCategories = DB::table('project_categories')
+                        ->where('id', $registration->project_category)
+                        ->first();
+
 @endphp
 
     {{-- WATERMARK (fixed, appears on all printed pages) --}}
@@ -434,7 +438,7 @@
                 <td>{{ $registration->project_type ?? '—' }}</td>
                 <th>Project Category:</th>
                 <td>
-                    {{ $registration->project_category ?? '—' }}
+                    {{ $projectCategories->name ?? '—' }}
                     @if($registration->project_category == 'Others' && $registration->other_category)
                         ({{ $registration->other_category }})
                     @endif
@@ -628,6 +632,9 @@
                 <th style="width:22%;">Remarks</th>
             </tr>
             @forelse($documents as $key => $label)
+                    @if($key === 'incorporation_documents' && ($registration->enterprise_type ?? 0) == 1)
+                    @continue
+                @endif
                 @php
                     $item  = $enclosures[$key] ?? null;
                     $path  = $item['file_path'] ?? null;

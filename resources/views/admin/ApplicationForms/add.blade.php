@@ -1,6 +1,6 @@
-@extends('admin.layouts.app')
+@extends('backend.layouts.app')
 
-@section('title', 'Add Role')
+@section('title', 'Add Application Forms')
 
 @push('styles')
 @endpush
@@ -8,110 +8,160 @@
 @section('content')
 
 <main class="main-wrapper">
-    <div class="main-content">
-      <!--breadcrumb-->
-      <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
-        <div class="breadcrumb-title pe-3">Application Forms</div>
-        <div class="ps-3">
-          <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0 p-0">
-              <li class="breadcrumb-item"><a href="javascript:;"><i class="bx bx-home-alt"></i></a></li>
-              <li class="breadcrumb-item active" aria-current="page">Add Application Forms</li>
-            </ol>
-          </nav>
-        </div>
-        <div class="ms-auto">
-            <div class="btn-group">
-                <a href="{{ route('admin.application-forms.create') }}" class="btn btn-danger px-4">
-                    <i class="bi bi-arrow-left me-2"></i>Back
-                  </a>
-            </div>
-        </div>
-      </div>
+    <div class=" container-fluid px-4 mt-4">
 
-      <div class="col-12 col-xl-12">
-        <div class="card border-top border-3 border-danger rounded-0">
-                        <div class="card-body p-4">
-                            <h5 class="mb-4">Add Application Forms</h5>
+        <div class="bg-image" style="background-image: url('assets/media/photos/neilit.JPG'); min-height: 100px;">
+
+            <div class="bg-gd-white-op-l">
+
+                <div class="d-flex justify-content-between align-items-center content py-3">
+
+                    <h3 class="text-black-75 text-center text-sm-start mb-0">
+
+                        Application Forms
+
+                    </h3>
+
+                    <nav aria-label="breadcrumb">
+
+                        <ol class="breadcrumb  px-3 py-2 mb-0">
+
+                            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+
+                            <li class="breadcrumb-item active" aria-current="page">Add Application Forms</li>
+
+                        </ol>
+
+                    </nav>
+
+                </div>
+
+            </div>
+
+        </div>
+
+            <div class="block-header block-header-default d-flex justify-content-end">
+                <a href="{{ route('admin.application-forms.index') }}" class="btn btn-danger">
+                    <i class="fa fa-arrow-left me-1"></i> Back
+                </a>
+            </div>
+   
+
+      <div class="row mt-2">
+
+
+
+                <div class="col-md-12 col-xl-12">
+
+                    <div class="block block-rounded p-3">
+
+                    <div class="block-header block-header-default pb-2">
+
+                            <h3 class="block-title">Add Application Forms</h3>
+
+                        </div> 
+
+                        <div class="block-content p-2">
+
+                            @if (session('success'))
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+
+                                    {{ session('success') }}
+
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                        aria-label="Close"></button>
+
+                                </div>
+                            @endif
+
+                            @if (session('error'))
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+
+                                    {{ session('error') }}
+
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                        aria-label="Close"></button>
+
+                                </div>
+                            @endif
+
                             <form class="row g-3" method="POST" action="{{ route('admin.application-forms.store') }}" enctype="multipart/form-data">
                                 @csrf
-                                <div class="col-md-6">
-                                    <label for="input13" class="form-label">Form Name</label>
-                                    <div class="position-relative input-icon">
-                                        <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
-                                               id="input13" value="{{ old('name') }}" required placeholder="Form Name">
-                                        <span class="position-absolute top-50 translate-middle-y"><i class="material-icons-outlined fs-5">person_outline</i></span>
-                                        @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label for="input14" class="form-label">Status</label>
-                                    <div class="position-relative input-icon">
-                                        <select name="is_active" class="form-control @error('is_active') is-invalid @enderror" id="input14" required>
-                                            <option value="" disabled {{ old('is_active', '1') === '' ? 'selected' : '' }}>Select Status</option>
-                                            <option value="1" {{ old('is_active', '1') == '1' ? 'selected' : '' }}>Active</option>
-                                            <option value="0" {{ old('is_active', '1') == '0' ? 'selected' : '' }}>Inactive</option>
-                                        </select>
-                                        <span class="position-absolute top-50 translate-middle-y"><i class="bi bi-toggle-on"></i></span>
-                                        @error('is_active')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                                    </div>
-                                </div>
-
-                                <div class="col-md-12">
-                                    <label class="form-label">Short Description</label>
-                                    <input type="text" name="short_description" class="form-control @error('short_description') is-invalid @enderror"
-                                           value="{{ old('short_description') }}" maxlength="100" placeholder="Short description">
-                                    @error('short_description')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                                </div>
-
-                                <div class="col-md-12">
-                                    <label class="form-label">Image <small class="text-muted">(max 2 MB)</small></label>
-
-                                    <div class="position-relative" style="max-width:260px;">
-                                        <!-- File input -->
-                                        <input type="file"
-                                               name="image"
-                                               id="imageInput"
-                                               class="form-control @error('image') is-invalid @enderror"
-                                               accept="image/*">
-
-                                        @error('image')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-
-                                        <!-- Preview container (hidden until user selects a file) -->
-                                        <div id="previewWrapper" class="mt-2 d-none position-relative">
-                                            <img id="previewImage"
-                                                 src="#"
-                                                 alt="Preview"
-                                                 style="width:100%;max-height:200px;object-fit:cover;border:1px solid #ddd;border-radius:8px;padding:2px;">
-
-                                            <!-- Delete / remove icon -->
-                                            <button type="button"
-                                                    id="removeImageBtn"
-                                                    class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1"
-                                                    title="Remove image"
-                                                    style="border-radius:50%;width:28px;height:28px;line-height:1;">
-                                                <i class="bi bi-x-lg"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
+                                 <div class="col-md-6">
+                                <label class="form-label required">Form Name</label>
+                                <input type="text"
+                                    name="name"
+                                    class="form-control @error('name') is-invalid @enderror"
+                                    value="{{ old('name') }}"
+                                    placeholder="Enter form name">
+                                @error('name')<div class="text-danger small">{{ $message }}</div>@enderror
+                            </div>
 
 
-                                {{-- <div class="col-md-12">
-                                    <label class="form-label">Image</label>
-                                    <input type="file" name="image" class="form-control @error('image') is-invalid @enderror" accept="image/*">
-                                    @error('image')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                                </div> --}}
+                                 <div class="col-md-6">
+                    <label class="form-label required">Status</label>
+                    <select name="is_active"
+                            class="form-select @error('is_active') is-invalid @enderror">
+                        <option value="">Select Status</option>
+                        <option value="1" {{ old('is_active','1')=='1'?'selected':'' }}>Active</option>
+                        <option value="0" {{ old('is_active','1')=='0'?'selected':'' }}>Inactive</option>
+                    </select>
+                    @error('is_active')<div class="text-danger small">{{ $message }}</div>@enderror
+                </div>
 
-                                <div class="col-md-12">
-                                    <div class="d-md-flex d-grid align-items-center gap-3">
-                                        <button type="submit" class="btn btn-grd-primary px-4">Create</button>
-                                        <a href="{{ route('admin.application-forms.create') }}" class="btn btn-grd-royal px-4">Reset</a>
-                                    </div>
-                                </div>
+                <!-- Short Description -->
+                <div class="col-md-12">
+                    <label class="form-label">Short Description</label>
+                    <input type="text"
+                           name="short_description"
+                           class="form-control @error('short_description') is-invalid @enderror"
+                           value="{{ old('short_description') }}"
+                           maxlength="100"
+                           placeholder="Enter short description">
+                    @error('short_description')<div class="text-danger small">{{ $message }}</div>@enderror
+                </div>
+
+                <div class="col-md-12">
+                    <label class="form-label">Image <small class="text-muted">(Max 2MB)</small></label>
+
+                    <input type="file"
+                           name="image"
+                           id="imageInput"
+                           class="form-control @error('image') is-invalid @enderror"
+                           accept="image/*">
+
+                    @error('image')
+                        <div class="text-danger small">{{ $message }}</div>
+                    @enderror
+
+                    <!-- Preview -->
+                    <div id="previewWrapper" class="mt-3 d-none position-relative" style="max-width:200px;">
+                        <img id="previewImage"
+                             src="#"
+                             class="img-fluid rounded border p-1">
+
+                        <button type="button"
+                                id="removeImageBtn"
+                                class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+
+
+                           
+
+                                <div class="col-12">
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-check me-1"></i> Create
+        </button>
+
+        <a href="{{ route('admin.application-forms.create') }}" class="btn btn-secondary">
+            <i class="fa-solid fa-rotate-right me-1"></i> Reset
+        </a>
+    </div>
+</div>
                             </form>
 
                         </div>

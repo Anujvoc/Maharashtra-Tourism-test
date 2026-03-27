@@ -1,4 +1,4 @@
-@extends('admin.layouts.app')
+@extends('backend.layouts.app')
 
 @section('title', 'Application Forms')
 
@@ -8,45 +8,82 @@
 @section('content')
 
   <main class="main-wrapper">
+        <div class=" container-fluid px-4 mt-4">
     <div class="main-content">
       <!--breadcrumb-->
-      <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
-        <div class="breadcrumb-title pe-3">Application Forms</div>
-        <div class="ps-3">
-          <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0 p-0">
-              <li class="breadcrumb-item"><a href="javascript:;"><i class="bx bx-home-alt"></i></a></li>
-              <li class="breadcrumb-item active" aria-current="page">All Forms</li>
-            </ol>
-          </nav>
+       <div class="bg-image" style="min-height: 100px;">
+          <div class="bg-image" style="background-image: url('{{ asset('backend/mah-logo-300x277.png') }}'); background-size: cover; background-position: center; min-height: 100px;"> 
+
+        <div class="bg-gd-white-op-l">
+
+            <div class="d-flex justify-content-between align-items-center content py-3">
+
+                <h3 class="text-black-75 text-center text-sm-start mb-0">
+
+                  Application Forms
+
+                </h3>
+
+                <nav aria-label="breadcrumb">
+
+                    <ol class="breadcrumb  px-3 py-2 mb-0">
+
+                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+
+                        <li class="breadcrumb-item active" aria-current="page">Application Forms</li>
+
+                    </ol>
+
+                </nav>
+
+            </div>
+
+        </div>
+
+    </div>
+
+<div class="card shadow-sm border-0 mb-4">
+  <div class="card-body">
+
+    <div class="row align-items-center g-3">
+      <div class="col-lg-5 col-md-6">
+        <form method="GET">
+          <div class="position-relative">
+            <input 
+              type="search" 
+              name="q" 
+              value="{{ $q ?? '' }}" 
+              class="form-control rounded-pill ps-5"
+              placeholder="Search Forms..."
+            >
+            <span class="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted">
+              <i class="bi bi-search"></i>
+            </span>
+          </div>
+        </form>
+      </div>
+
+    
+      <!-- Buttons -->
+      <div class="col-lg-4 col-md-6 text-md-end">
+          {{-- 
+        <div class="d-flex gap-2 justify-content-md-end flex-wrap">
+
+          <button class="btn btn-outline-primary rounded-pill px-3">
+            <i class="bi bi-box-arrow-down me-1"></i> Export
+          </button>
+--}}
+          <a href="{{ route('admin.application-forms.create') }}" class="btn btn-primary rounded-pill px-3">
+            <i class="fa fa-plus me-1"></i> Add Application Forms
+          </a>
+
         </div>
       </div>
 
-      <div class="row g-3">
+    </div>
 
-        <div class="col-auto">
-          <div class="position-relative">
-            <form method="GET">
-              <input class="form-control px-5" type="search" name="q" value="{{ $q ?? '' }}"
-                placeholder="Search Country...">
-              <span
-                class="material-icons-outlined position-absolute ms-3 translate-middle-y start-0 top-50 fs-5">search</span>
-            </form>
-          </div>
-        </div>
-
-        <div class="col-auto align-items-end ">
-          <div class="d-flex align-items-center gap-2 justify-content-lg-end">
-            {{-- Keep Export static for now --}}
-            <button class="btn btn-filter px-4">
-              <i class="bi bi-box-arrow-right me-2"></i>Export
-            </button>
-            <a href="{{ route('admin.application-forms.create') }}" class="btn btn-primary px-4">
-              <i class="bi bi-plus-lg me-2"></i>Add Application Forms
-            </a>
-
-          </div>
-        </div>
+  </div>
+</div>
 
         <div class="card mt-2">
 
@@ -116,8 +153,21 @@
 
 @push('scripts')
   <script>
+     function reloadStudentTable() {
+        $('#applicationFormTable').DataTable().ajax.reload();
+    }
+
     $(function () {
+      if ($.fn.DataTable.isDataTable('#applicationFormTable')) {
+            $('#applicationFormTable').DataTable().destroy();
+        }
       let table = $('#applicationFormTable').DataTable({
+         lengthMenu: [
+                [15, 25, 50,75,100, -1],
+                [15, 25, 50,75,100, "All"]
+            ],
+            displayStart: 0,
+            pageLength: 15,
         processing: true,
         serverSide: true,
         ajax: '{{ route('admin.application-forms.data') }}',
@@ -135,24 +185,99 @@
           searchPlaceholder: "Search by name or description...",
           search: "",
         },
-        dom: '<"d-flex justify-content-between align-items-center mb-2"Bf>rt<"d-flex justify-content-between mt-3"lp>',
-        buttons: [
-          {
-            extend: 'print',
-            text: '<i class="bi bi-printer"></i> Print',
-            className: 'btn btn-secondary btn-sm text-white'
-          },
-          {
-            extend: 'excel',
-            text: '<i class="bi bi-file-earmark-excel"></i> Excel',
-            className: 'btn btn-success btn-sm text-white'
-          },
-          {
-            extend: 'csv',
-            text: '<i class="bi bi-file-earmark-text"></i> CSV',
-            className: 'btn btn-primary btn-sm text-white'
-          },
-        ],
+        dom: "<'row mb-2 align-items-center'" +
+
+                "<'col-sm-6 d-flex align-items-center'B>" +
+
+                "<'col-sm-6'f>" +
+
+                ">" +
+
+                "<'row'<'col-sm-12'tr>>" +
+
+                "<'row mt-2'<'col-sm-5'i><'col-sm-7'p>>",
+
+            buttons: [{
+
+                    extend: 'copyHtml5',
+
+                    className: 'btn btn-sm btn-primary me-1 mb-1',
+
+                    text: '<i class="fa fa-copy me-1"></i> Copy',
+                    exportOptions: {
+                        columns: ':not(:last-child)',
+                        modifier: {
+                            page: 'all'
+                        }
+                    }
+
+                },
+
+                {
+
+                    extend: 'csvHtml5',
+
+                    className: 'btn btn-sm btn-primary me-1 mb-1',
+
+                    text: '<i class="fa fa-file-csv me-1"></i> CSV',exportOptions: {
+                        columns: ':not(:last-child)',
+                        modifier: {
+                            page: 'all'
+                        }
+                    }
+
+                },
+
+                {
+
+                    extend: 'excelHtml5',
+
+                    className: 'btn btn-sm btn-primary me-1 mb-1',
+
+                    text: '<i class="fa fa-file-excel me-1"></i> Excel',
+                    exportOptions: {
+                        columns: ':not(:last-child)',
+                        modifier: {
+                            page: 'all'
+                        }
+                    }
+
+                },
+
+                {
+
+                    extend: 'pdfHtml5',
+
+                    className: 'btn btn-sm btn-primary me-1 mb-1',
+
+                    text: '<i class="fa fa-file-pdf me-1"></i> PDF',exportOptions: {
+                        columns: ':not(:last-child)',
+                        modifier: {
+                            page: 'all'
+                        }
+                    }
+
+                },
+
+                {
+
+                    extend: 'print',
+
+                    className: 'btn btn-sm btn-primary me-1 mb-1',
+
+                    text: '<i class="fa fa-print me-1"></i> Print',exportOptions: {
+                        columns: ':not(:last-child)',
+                        modifier: {
+                            page: 'all'
+                        }
+                    }
+
+                }
+
+            ],
+            language: {
+                processing: '<i class="fa fa-spinner fa-spin text-danger"></i> Loading...'
+            }
 
       });
     });

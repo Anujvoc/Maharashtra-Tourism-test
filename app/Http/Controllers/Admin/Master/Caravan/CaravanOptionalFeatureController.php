@@ -10,9 +10,21 @@ use Illuminate\Validation\Rule;
 
 class CaravanOptionalFeatureController extends Controller
 {
-     /**
-     * Display a listing of the resource.
-     */
+    public function OptionalFeature(Request $request){
+    $CaravanOptionalFeature = CaravanOptionalFeature::where('is_active',true)->orderBy('name')->get();
+            if (!CaravanOptionalFeature::exists()) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'No Caravan Optional Feature found.'
+                    ]);
+                }
+                return response()->json([
+                    'status' => true,
+                    'message' => 'All Caravan Optional Feature.',
+                    'data' => $CaravanOptionalFeature,
+                ]);
+     }
+
     public function index()
     {
 

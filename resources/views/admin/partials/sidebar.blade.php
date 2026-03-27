@@ -1,7 +1,8 @@
 <aside class="sidebar-wrapper" data-simplebar="true">
   <div class="sidebar-header">
     <div class="logo-icon">
-      <img src="https://maharashtratourism.gov.in/wp-content/uploads/2025/01/mah-logo-300x277.png" class="logo-img"
+      <img src="{{ asset('backend/mah-logo-300x277.png') }}" class="logo-img"
+      {{-- <img src="https://maharashtratourism.gov.in/wp-content/uploads/2025/01/mah-logo-300x277.png" class="logo-img" --}}
         alt="">
     </div>
     <div class="logo-name flex-grow-1">
@@ -390,6 +391,125 @@
               <i class="material-icons-outlined">lock</i>
             </div>
             <div class="menu-title">Roles & Permissions</div>
+          </a>
+
+          <ul>
+            {{-- PERMISSIONS --}}
+            @canany(['view permission', 'create permission'])
+              <li>
+                <a class="has-arrow" href="javascript:;">
+                  <i class="material-icons-outlined">arrow_right</i>Permissions
+                </a>
+                <ul>
+                  @can('view permission')
+                    <li>
+                      <a href="{{ route('admin.permissions.index') }}">
+                        <i class="material-icons-outlined">arrow_right</i>All Permission
+                      </a>
+                    </li>
+                  @endcan
+
+                  @can('create permission')
+                    <li>
+                      <a href="{{ route('admin.permissions.create') }}">
+                        <i class="material-icons-outlined">arrow_right</i>Add Permission
+                      </a>
+                    </li>
+                  @endcan
+                </ul>
+              </li>
+            @endcanany
+
+            {{-- ROLES --}}
+            @canany(['view roles', 'create roles'])
+              <li>
+                <a class="has-arrow" href="javascript:;">
+                  <i class="material-icons-outlined">arrow_right</i>Roles
+                </a>
+                <ul>
+                  @can('view roles')
+                    <li>
+                      <a href="{{ route('admin.roles.index') }}">
+                        <i class="material-icons-outlined">arrow_right</i>All Roles
+                      </a>
+                    </li>
+                  @endcan
+
+                  @can('create roles')
+                    <li>
+                      <a href="{{ route('admin.roles.create') }}">
+                        <i class="material-icons-outlined">arrow_right</i>Add Roles
+                      </a>
+                    </li>
+                  @endcan
+                </ul>
+              </li>
+            @endcanany
+
+            {{-- ASSIGN PERMISSION TO ROLES --}}
+            @canany(['edit roles', 'view roles'])
+              <li>
+                <a class="has-arrow" href="javascript:;">
+                  <i class="material-icons-outlined">arrow_right</i>Assign Permission
+                </a>
+                <ul>
+                  @can('view roles')
+                    <li>
+                      <a href="{{ route('admin.all.roles.permission') }}">
+                        <i class="material-icons-outlined">arrow_right</i>All RolesPermission
+                      </a>
+                    </li>
+                  @endcan
+
+                  @can('edit roles')
+                    <li>
+                      <a href="{{ route('admin.add.roles.permission') }}">
+                        <i class="material-icons-outlined">arrow_right</i>Add RolesPermission
+                      </a>
+                    </li>
+                  @endcan
+                </ul>
+              </li>
+            @endcanany
+
+            {{-- MANAGE ADMIN USERS --}}
+            @canany(['view user', 'create user'])
+              <li>
+                <a class="has-arrow" href="javascript:;">
+                  <i class="material-icons-outlined">arrow_right</i>Manage Admin
+                </a>
+                <ul>
+                  @can('view user')
+                    <li>
+                      <a href="{{ route('admin.users.index') }}">
+                        <i class="material-icons-outlined">arrow_right</i>All Users
+                      </a>
+                    </li>
+                  @endcan
+
+                  @can('create user')
+                    <li>
+                      <a href="{{ route('admin.users.create') }}">
+                        <i class="material-icons-outlined">arrow_right</i>Add Users
+                      </a>
+                    </li>
+                  @endcan
+                </ul>
+              </li>
+            @endcanany
+
+          </ul>
+        </li>
+      @endcanany
+
+       @canany(['view permission', 'create permission', 'view roles', 'create roles', 'view user', 'create user'])
+        <li class="menu-label">Website Settings</li>
+        <li>
+          <a class="has-arrow" href="javascript:;">
+            <div class="setting-icon">
+              <i class="material-icons-outlined">lock</i>
+            </div>
+            <div class="menu-title">Settings</div>
           </a>
 
           <ul>

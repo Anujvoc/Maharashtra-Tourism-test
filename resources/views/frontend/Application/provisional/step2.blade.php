@@ -272,9 +272,19 @@
                 {{-- 4. Zone --}}
                 <div class="row mb-4">
                     <div class="col-12">
-                        <label class="form-label d-block">
-                            4. Zone as per MTP 2024 <span class="text-danger">*</span>
+                        <label class="form-label d-flex align-items-center">
+                            <span>
+                                4. Zone as per MTP {{ date('Y') }} <span class="text-danger">*</span>
+                            </span><span class="text-primary me-2 mx-2">Click here for Zone Info</span>
+
+                            <i class="fa fa-info-circle text-primary mx-2"
+                               style="cursor:pointer;font-size:21px"
+                               data-toggle="modal"
+                               data-target="#zoneModal">
+                            </i>
                         </label>
+
+
                         <div class="d-flex flex-wrap gap-3">
                             @php $zones = ['A', 'B', 'C', 'STZ/STD', 'Entire State']; @endphp
                             @foreach($zones as $zone)
@@ -294,6 +304,8 @@
                         @enderror
                     </div>
                 </div>
+
+
 
                 {{-- 5. Project Type --}}
                 <div class="row mb-4">
@@ -530,8 +542,14 @@
                 <div class="row mb-4">
                     <div class="col-12">
                         <label class="form-label fw-semibold">
-                            7. Project Category: <span class="text-danger">*</span>
+                            7. Project Category: <span class="text-danger">*</span> <span class="text-primary me-2">Click here for Project Category && Subcategory Info</span>
+                            <i class="fa fa-info-circle text-primary mx-2 mt-2"
+                            style="cursor:pointer;font-size:21px"
+                            data-toggle="modal"
+                            data-target="#projectCategoriesModal">
+                         </i>
                         </label>
+
                         <div class="d-flex flex-wrap gap-3 mt-2">
                             @php
                                 $projectCategories = [
@@ -543,16 +561,26 @@
                                     'Others'                   => 'categoryOthers'
                                 ];
                             @endphp
-                            @foreach($projectCategories as $category => $id)
+                             @php
+                           $projectCategories = DB::table('project_categories')
+                        ->where('is_active', 1)
+                        ->orderBy('name', 'asc')
+                        ->get();
+                            @endphp
+
+                            @foreach($projectCategories as $category)
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input @error('project_category') is-invalid @enderror"
-                                           type="radio"
-                                           name="project_category"
-                                           id="{{ $id }}"
-                                           value="{{ $category }}"
-                                           {{ old('project_category', $registration->project_category) == $category ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="{{ $id }}">
-                                        {{ $category }}
+                                    <input
+                                        class="form-check-input @error('project_category') is-invalid @enderror"
+                                        type="radio"
+                                        name="project_category"
+                                        id="project_category_{{ $category->id }}"
+                                        value="{{ $category->id }}"
+                                        {{ old('project_category', $registration->project_category ?? '') == $category->id ? 'checked' : '' }}
+                                    >
+
+                                    <label class="form-check-label" for="project_category_{{ $category->id }}">
+                                        {{ $category->name }}
                                     </label>
                                 </div>
                             @endforeach
@@ -578,11 +606,14 @@
                     </div>
                 </div>
 
+
+
                 {{-- 8. Project Subcategory --}}
                 <div class="row mb-4">
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">
                             8. Project Subcategory: <span class="text-danger">*</span>
+
                         </label>
                         <input type="text"
                                class="form-control @error('project_subcategory') is-invalid @enderror"
@@ -634,7 +665,149 @@
         </div>
     </div>
 </section>
+
+<div class="modal fade" id="projectCategoriesModal" tabindex="-1" role="dialog" aria-labelledby="zoneModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="zoneModalLabel">
+                    Project Categories
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            @php
+            $project_categories = DB::table('project_categories')
+            ->where('is_active', 1)
+            ->orderBy('name', 'asc')
+            ->paginate(10);
+
+
+            @endphp
+
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped text-center">
+                        <thead class="thead-light">
+                            <tr>
+                                <th style="width:70%">Categories</th>
+                                <th style="width:30%">Type of Unit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach(@$project_categories as $zone)
+                            <tr>
+                                <td>
+                                    <strong>{{ $zone->name }}</strong>
+                                </td>
+
+                                <td class="text-left">
+                                    @php
+                                        // areas JSON -> array
+                                        $areaIds = json_decode($zone->units, true);
+
+                                        if (!empty($areaIds)) {
+                                            $unitNames = DB::table('project_types')
+                                                ->whereIn('id', $areaIds)
+                                                ->pluck('name');
+                                        } else {
+                                            $unitNames = collect();
+                                        }
+                                    @endphp
+
+                                    @if($unitNames->isEmpty())
+                                        <span class="badge badge-secondary">No Units</span>
+                                    @else
+                                        @foreach($unitNames as $unit)
+                                            <span class="badge badge-primary mt-1 mr-1">
+                                                {{ $unit }}
+                                            </span>
+                                        @endforeach
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                        </tbody>
+                    </table>
+                    <div class="mt-3">
+                        {{ $project_categories->links() }}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="zoneModal" tabindex="-1" role="dialog" aria-labelledby="zoneModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="zoneModalLabel">
+                    Zone Classification as per MTP {{ date('Y') }}
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            @php
+               $zones = DB::table('zones')->where('is_active', 1)
+               ->get();
+               $regions = DB::table('areas')
+                ->pluck('name', 'id');
+            @endphp
+
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped text-center">
+                        <thead class="thead-light">
+                            <tr>
+                                <th style="width:70%">Area</th>
+                                <th style="width:30%">Zone Classification</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($zones as $zone)
+                            <tr>
+                                <td class="text-left">
+                                    @php
+                                        $areaIds = json_decode($zone->areas, true);
+                                        $areaNames = [];
+
+                                        if(is_array($areaIds)) {
+                                            foreach ($areaIds as $id) {
+                                                if(isset($regions[$id])) {
+                                                    $areaNames[] = $regions[$id];
+                                                }
+                                            }
+                                        }
+                                    @endphp
+
+                                    {{ implode(', ', $areaNames) }}
+                                </td>
+                                <td>
+                                    <strong>{{ $zone->name }}</strong>
+                                </td>
+                            </tr>
+                        @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
 @endsection
+                <!-- Modal -->
+
 
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>

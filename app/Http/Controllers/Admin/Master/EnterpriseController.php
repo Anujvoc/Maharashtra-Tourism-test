@@ -4,13 +4,29 @@ namespace App\Http\Controllers\Admin\Master;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Admin\master\Enterprise;
+use App\Models\Admin\Master\Enterprise;
 
 class EnterpriseController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
+    public function enterprise(){
+          $Enterprise = Enterprise::orderBy('name')->get();
+          if (!Enterprise::exists()) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'No Enterprise found.'
+                    ]);
+                }
+                
+                return response()->json([
+                    'status' => true,
+                    'message' => 'All Enterprise.',
+                    'data' => $Enterprise,
+                ]);
+    }
+    
     public function index()
     {
         return view('admin.master.enterprise.index');

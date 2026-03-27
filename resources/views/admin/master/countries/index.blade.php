@@ -1,4 +1,4 @@
-@extends('admin.layouts.app')
+@extends('backend.layouts.app')
 
 @section('title', 'Countries')
 
@@ -7,67 +7,107 @@
 
 @section('content')
 
-<main class="main-wrapper">
+<div class=" container-fluid px-4 mt-4">
     <div class="main-content">
       <!--breadcrumb-->
-      <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
-        <div class="breadcrumb-title pe-3">Country</div>
-        <div class="ps-3">
-          <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0 p-0">
-              <li class="breadcrumb-item"><a href="javascript:;"><i class="bx bx-home-alt"></i></a></li>
-              <li class="breadcrumb-item active" aria-current="page">Index</li>
-            </ol>
-          </nav>
+   
+
+
+ <div class="bg-image" style="min-height: 100px;">
+          <div class="bg-image" style="background-image: url('assets/media/photos/sugarcane.jpg'); min-height: 100px;"> 
+
+        <div class="bg-gd-white-op-l">
+
+            <div class="d-flex justify-content-between align-items-center content py-3">
+
+                <h3 class="text-black-75 text-center text-sm-start mb-0">
+
+                    Country Management
+
+                </h3>
+
+                <nav aria-label="breadcrumb">
+
+                    <ol class="breadcrumb  px-3 py-2 mb-0">
+
+                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+
+                        <li class="breadcrumb-item active" aria-current="page">Country</li>
+
+                    </ol>
+
+                </nav>
+
+            </div>
+
         </div>
+
+    </div>
+
+<div class="card shadow-sm border-0 mb-4">
+  <div class="card-body">
+
+    <div class="row align-items-center g-3">
+
+  
+      <div class="col-lg-5 col-md-6">
+        <form method="GET">
+          <div class="position-relative">
+            <input 
+              type="search" 
+              name="q" 
+              value="{{ $q ?? '' }}" 
+              class="form-control rounded-pill ps-5"
+              placeholder="Search country..."
+            >
+            <span class="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted">
+              <i class="bi bi-search"></i>
+            </span>
+          </div>
+        </form>
       </div>
 
-      {{-- Search + Buttons --}}
-      <div class="row g-3">
-        {{-- <div class="col-auto">
-            <div class="d-flex flex-wrap gap-2 mt-2">
-                <button class="btn btn-sm btn-primary" id="export-print"><i class="bx bx-printer me-1"></i> Print</button>
-                <button class="btn btn-sm btn-secondary" id="export-csv"><i class="bx bx-file me-1"></i> CSV</button>
-                <button class="btn btn-sm btn-success" id="export-excel"><i class="bx bx-table me-1"></i> Excel</button>
-                <button class="btn btn-sm btn-danger" id="export-pdf"><i class="bx bx-file me-1"></i> PDF</button>
-                <button class="btn btn-sm btn-warning" id="export-copy"><i class="bx bx-copy me-1"></i> Copy</button>
-              </div>
-        </div> --}}
-        <div class="col-auto">
-          <div class="position-relative">
-            <form method="GET">
-              <input class="form-control px-5" type="search" name="q" value="{{ $q ?? '' }}" placeholder="Search Country...">
-              <span class="material-icons-outlined position-absolute ms-3 translate-middle-y start-0 top-50 fs-5">search</span>
-            </form>
-          </div>
+      {{-- 
+      <!-- Buttons -->
+      <div class="col-lg-4 col-md-6 text-md-end">
+        <div class="d-flex gap-2 justify-content-md-end flex-wrap">
+
+          <button class="btn btn-outline-primary rounded-pill px-3">
+            <i class="bi bi-box-arrow-down me-1"></i> Export
+          </button>
+
+          <a href="#" class="btn btn-primary rounded-pill px-3">
+            <i class="bi bi-plus-lg me-1"></i> Add Country
+          </a>
+
         </div>
+      </div>
+--}}
+    </div>
 
-        <div class="col-auto align-items-end ">
-          <div class="d-flex align-items-center gap-2 justify-content-lg-end">
-            {{-- Keep Export static for now --}}
-            <button class="btn btn-filter px-4">
-              <i class="bi bi-box-arrow-right me-2"></i>Export
-            </button>
-            {{-- 
-            <a href="{{ route('admin.master.countries.create') }}" class="btn btn-primary px-4">
-              <i class="bi bi-plus-lg me-2"></i>Add Country
-            </a> --}}
-          </div>
-        </div>
-
-
-
-
-
+  </div>
+</div>
 
 				<div class="card mt-2">
 
 					<div class="card-body">
+             <div class="block-header block-header-default d-flex justify-content-between align-items-center">
 
-						<div class="table-responsive mt-2">
-							<table id="example" class="table table-striped table-bordered">
+                    <h3 class="block-title">
+
+                        Country List
+
+                    </h3>
+
+                </div>
+
+						<div class="block-content block-content-full overflow-x-auto">
+
+                    <table class="table table-bordered table-striped table-vcenter js-dataTable-buttons" id="batch-table" style="width:100%">
+
 								<thead>
 									<tr>
+                     <th class="text-center" style="width: 40px;">#</th>
                                         <th>Name</th>
                                         <th>ISO Code</th>
                                         <th>Status</th>
@@ -76,8 +116,9 @@
 									</tr>
 								</thead>
                                 <tbody>
-                                    @forelse ($countries as $country)
+                                    @forelse ($countries as $key => $country)
                                       <tr>
+                                        <td>{{ $key + 1  }}</td>
                                         <td>{{ $country->name }}</td>
                                         <td>{{ $country->iso_code ?? '—' }}</td>
                                         <td>
@@ -118,5 +159,11 @@
 @push('scripts')
 <script>
 // Optional custom JS logic can go here
+
 </script>
 @endpush
+
+
+
+
+

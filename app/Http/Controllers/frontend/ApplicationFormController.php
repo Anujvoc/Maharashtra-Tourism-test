@@ -32,15 +32,16 @@ class ApplicationFormController extends Controller
     public function index()
     {
         $data['forms'] = ApplicationForm::where('is_active',1)->get();
-
-        return view('frontend.Application.index', $data);
+        return view('frontend.forms.index', $data);
     }
 
     public function create($slug)
     {
+
         if (!auth()->check()) {
             return redirect()->back()->with('error', 'Please login first.');
         }
+
         $application_form = ApplicationForm::where('is_active', 1)
             ->where('slug', $slug)
             ->firstOrFail();
@@ -192,6 +193,7 @@ class ApplicationFormController extends Controller
             $enterprises = Enterprise::select('id','name')->get();
             $districts = DB::table('districts')->select('id','name')->get();
             $categories = ['Land Activity','Water Activity','Air Activity'];
+            return view ('frontend.Application.AdventureApplications.index1',compact('application','application_form','regions','districts','categories','enterprises','id'));
 
             return view($view, compact('application','application_form','regions','districts','categories','enterprises','id'));
         }
@@ -275,6 +277,8 @@ class ApplicationFormController extends Controller
         if ($application_form->slug == "issuance-of-temporary-registration-certificate") {
 
             $userId = Auth::id();
+            // dd(123);
+            // dd($application_form->slug);
 
             $alreadyFinal = ProvisionalRegistration::where('user_id', $userId)
                 ->where('application_form_id', $application_form->id)
@@ -316,7 +320,6 @@ class ApplicationFormController extends Controller
 
             $registration = ProvisionalRegistration::firstOrCreate(
                 [
-
                     'application_form_id' => $application_form->id,
                     'user_id'        => $userId,
                     'registration_id' => 'PVR-' . str_pad(random_int(0, 99999999), 8, '0', STR_PAD_LEFT),

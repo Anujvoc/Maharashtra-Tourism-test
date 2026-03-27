@@ -20,14 +20,34 @@ use App\Models\frontend\ApplicationForm\WomenCenteredTourismRegistration;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use Exception;
+use App\Models\frontend\Api\ApplicationMovement;
+use Illuminate\Support\Facades\Hash;
 class WomenCenteredTourismRegistrationController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
+    {}
+    public function WomenCenteredTourismForm()
     {
-        //
+        if ($request->is('api/*')) {
+           $application_form = ApplicationForm::where('is_active', 1)
+        ->where('slug','women-centered-tourism-policy-registration')
+        ->first();
+        if(!$application_form){
+            return response()->json([
+                'status' => false,
+                'message' => 'No Available Application Forms.'
+            ], 400);
+        } else {
+            return response()->json([
+                'status' => true,
+                'message' => 'Women-Centered Tourism Policy Registration Forms.',
+                'data' => $application_form,
+            ]);
+        }
+        }
     }
 
     /**
@@ -37,16 +57,39 @@ class WomenCenteredTourismRegistrationController extends Controller
     {
         //
     }
+    public function apply(Request $request)
+    {
+        return response()->json([
+            'status' => false,
+            'message' => 'Invalid Application type provided1.'
+        ], 400);
+    }
 
     public function store(Request $request)
     {
+        if ($request->is('api/*')) {
+        $form = ApplicationForm::where('is_active', 1)
+            ->where('slug', $request->slug)
+            ->first();
+             if (!$form) {
+            return response()->json([
+            'status' => false,
+            'message' => 'Invalid Application type provided.'
+        ], 400);
+        }
+        }
+
         // Validation rules
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'mobile' => 'required|string|max:15',
+            'email' => 'required|email|unique:users,email',
+            'mobile' => 'required|string|max:10|regex:/^[6-9][0-9]{9}$/',
             'applicant_name' => 'required|string|max:255',
             'business_name' => 'required|string|max:255',
             'organisation_type' => 'required|exists:enterprises,id',
+
+            'region_id' => 'required|exists:divisions,id',
+            'district_id' => 'required|exists:districts,id',
+
             'gender' => 'required|in:male,female',
             'dob' => 'required|date',
             'age' => 'required|integer|min:18',
@@ -65,7 +108,7 @@ class WomenCenteredTourismRegistrationController extends Controller
             'female_employees' => 'nullable|integer|min:0',
             'total_employees' => 'nullable|integer|min:0',
             'total_project_cost' => 'required|numeric|min:0',
-            'project_information' => 'required|string|min:500',
+            'project_information' => 'required|string|min:50',
             'bank_account_holder' => 'required|string|max:255',
             'bank_account_no' => 'required|string|max:30',
             'bank_account_type' => 'nullable|string|max:20',
@@ -74,16 +117,28 @@ class WomenCenteredTourismRegistrationController extends Controller
             'business_in_operation' => 'nullable|boolean',
             'business_operation_since' => 'nullable|date',
             'business_expected_start' => 'nullable|date',
-            'applicant_image' => 'required|image|mimes:jpeg,jpg,png|max:200',
-            'applicant_signature' => 'required|image|mimes:jpeg,jpg,png|max:50',
+            // 'applicant_image' => 'required|image|mimes:jpeg,jpg,png|max:200',
+            // 'applicant_signature' => 'required|image|mimes:jpeg,jpg,png|max:50',
         ]);
 
-        if ($validator->fails()) {
+         if ($request->is('api/*')) {
+               if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Validation error',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+        }else{
+            if ($validator->fails()) {
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
         }
+        
+        }
 
+         DB::beginTransaction();
         try {
             // Handle file uploads
             $applicantImagePath = null;
@@ -104,22 +159,61 @@ class WomenCenteredTourismRegistrationController extends Controller
                     'public'
                 );
             }
+            if ($request->is('api/*')) {
+                $regId = $this->generateUniqueRegistrationId();
+                $user = User::create([
+                'name' => $request->applicant_name,
+                'username' => $request->applicant_name,
+                'registration_id' => $regId,
+                'image' => null,
+                'phone' => $request->phone ?? null,
+                'email' => $request->email ?? null,
+                'role' => 'user',
+                'status' => 'active',
+                'email_verified_at' => now(),
+                'phone_verified_at' => now(),
+                'is_email_verified' => true,
+                'is_phone_verified' => true,
+                'is_aadhar_verified' => false,
+                'password' => Hash::make($request->phone),
+                'aadhar' => $request->aadhar_no ?? null,
+            ]);
+
+              if (!$user) {
+                return response()->json([
+                'status' => false,
+                'message' => 'Failed to create user'
+                ], 500);
+              }
+
+            }
+
+              if ($request->is('api/*')) {
+                $UserID = $user->id;
+                $application_form_id = $form->id;
+                $is_maitri = 1;
+              }else{
+                $UserID = auth()->id();
+                $is_maitri = 0;
+              }
 
 
-
-            $nextId = (AgricultureRegistration::max('id') ?? 0) + 1;
+            $nextId = (WomenCenteredTourismRegistration::max('id') ?? 0) + 1;
             $registration_id = 'WCT-' . str_pad($nextId, 6, '0', STR_PAD_LEFT);
             $slug_id = Str::uuid();
 
             // Create registration record
             $registration = WomenCenteredTourismRegistration::create([
-                'user_id' => auth()->id(),
+                'user_id' => $UserID,
                 'status' => 'submitted',
-                'application_form_id' => $request->id,
+                'application_form_id' => $request->id ?? $application_form_id,
                 'registration_id' => $registration_id,
                 'slug_id' => $slug_id,
                 'is_apply' => true,
                 'submitted_at' => now(),
+
+                'region_id' => $request->region_id ?? null,
+                'district_id' => $request->district_id ?? null,
 
                 'email' => $request->email,
                 'mobile' => $request->mobile,
@@ -156,7 +250,28 @@ class WomenCenteredTourismRegistrationController extends Controller
                 'applicant_image_path' => $applicantImagePath,
                 'applicant_signature_path' => $applicantSignaturePath,
                 'status' => 'pending',
+                'is_maitri' => $is_maitri,
             ]);
+
+            $movement = ApplicationMovement::create([
+            'application_id' => $registration->id,
+            'desk_number' => 1,
+            'officer_name' => 'Clerk',
+            'action' => 'Submitted',
+            'action_datetime' => now(),
+            'remarks'     => 'submitted'
+        ]);
+
+         DB::commit();
+
+         if ($request->is('api/*')) {
+            return response()->json([
+            'status' => true,
+            'message' => 'Your registration has been submitted successfully!',
+            'application_id' => $registration->registration_id ?? null,
+            ]);
+
+         }
 
             return redirect()
             ->route('applications.index')
@@ -170,7 +285,13 @@ class WomenCenteredTourismRegistrationController extends Controller
             if (isset($applicantSignaturePath) && Storage::disk('public')->exists($applicantSignaturePath)) {
                 Storage::disk('public')->delete($applicantSignaturePath);
             }
-
+            if ($request->is('api/*')) {
+            return response()->json([
+                    'status' => false,
+                    'message' => 'There was an error submitting your registration',
+                    'errors' => $e->getMessage()
+                ], 422);
+            }
             return redirect()->back()
                 ->with('error',$e->getMessage())
                 ->withInput();
@@ -180,9 +301,14 @@ class WomenCenteredTourismRegistrationController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
+    protected function generateUniqueRegistrationId($prefix = 'MV')
+    {
+    do {
+        $id = strtoupper($prefix . '-' . Str::upper(Str::random(8)));
+    } while (User::where('registration_id', $id)->exists());
+    
+    return $id;
+    }
     public function show4(string $id)
     {
         //
